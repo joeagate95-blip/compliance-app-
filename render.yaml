@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: landlord-compliance-hub
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
