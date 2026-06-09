@@ -756,13 +756,8 @@ cron.schedule('0 8 * * *', () => {
 });
 /* ADMIN ANALYTICS */
 
-app.get('/api/admin-analytics', auth, (req, res) => {
+app.get('/api/admin-analytics', (req, res) => {
   const db = read();
-  const user = currentUser(req);
-
-  if (user.role !== 'administrator') {
-    return res.status(403).json({ error: 'Admin only' });
-  }
 
   const now = new Date();
   const docs = db.documents || [];
