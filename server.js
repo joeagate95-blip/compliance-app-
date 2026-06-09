@@ -754,7 +754,52 @@ cron.schedule('0 8 * * *', () => {
     console.error(e);
   }
 });
+/* ADMIN ANALYTICS */
 
+app.get('/api/admin-analytics', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  if (user.role !== 'administrator') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  const now = new Date();
+  const docs = db.documents || [];
+
+  const expired = docs.filter(d =>
+    d.expiryDate && new Date(d.expiryDate) < now
+  );
+
+  const dueSoon = docs.filter(d => {
+    if (!d.expiryDate) return false;
+
+    const days = Math.ceil(
+      (new Date(d.expiryDate) - now) / 86400000
+    );
+
+    return days >= 0 && days <= 60;
+  });
+
+  res.json({
+    users: (db.users || []).length,
+    landlords: (db.users || []).filter(u => u.role === 'landlord').length,
+    agents: (db.users || []).filter(u => u.role === 'letting_agent').length,
+    contractors: (db.contractors || []).length,
+    tenants: (db.users || []).filter(u => u.role === 'tenant').length,
+    properties: (db.properties || []).length,
+    documents: docs.length,
+    expired: expired.length,
+    dueSoon: dueSoon.length,
+    maintenanceOpen: (db.maintenance || []).filter(
+      m => m.status !== 'Completed'
+    ).length,
+    contractorJobs: (db.contractorJobs || []).length,
+    bookedJobs: (db.contractorJobs || []).filter(
+      j => j.status === 'Booked In'
+    ).length
+  });
+});
 /* FRONTEND FALLBACK */
 
 app.get('*', (req, res) => {
