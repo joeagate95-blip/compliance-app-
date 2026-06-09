@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contractor Job Portal</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f8fc;
+    margin:0;
+    padding:0;
+}
+
+.container{
+    max-width:900px;
+    margin:40px auto;
+    background:#fff;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+h1{
+    color:#0057A8;
+    margin-bottom:20px;
+}
+
+.card{
+    background:#f9fbff;
+    border:1px solid #d9e6f5;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    margin-bottom:15px;
+    box-sizing:border-box;
+}
+
+button{
+    background:#0057A8;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#004080;
+}
+
+.status{
+    display:inline-block;
+    padding:8px 12px;
+    border-radius:6px;
+    background:#e8f2ff;
+    color:#0057A8;
+    font-weight:bold;
+}
+
+.success{
+    color:green;
+    margin-top:15px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Contractor Job Portal</h1>
+
+    <div id="jobDetails" class="card">
+        Loading job details...
+    </div>
+
+    <div class="card">
+
+        <h2>Update Job Status</h2>
+
+        <form id="updateForm">
+
+            <label>Status</label>
+
+            <select id="status">
+                <option value="Requested">Requested</option>
+                <option value="Quote Sent">Quote Sent</option>
+                <option value="Booked In">Booked In</option>
+                <option value="Completed">Completed</option>
+                <option value="Unable To Attend">Unable To Attend</option>
+            </select>
+
+            <label>Quoted Price (£)</label>
+            <input type="text" id="quotedPrice">
+
+            <label>Booked Date</label>
+            <input type="date" id="bookedDate">
+
+            <label>Booked Time</label>
+            <input type="time" id="bookedTime">
+
+            <label>Contractor Notes</label>
+            <textarea id="contractorNotes" rows="5"></textarea>
+
+            <button type="submit">
+                Save Update
+            </button>
+
+        </form>
+
+        <div id="message" class="success"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+const token = window.location.pathname.split("/").pop();
+
+async function loadJob(){
+
+    const response = await fetch(`/api/contractor-job/${token}`);
+
+    const job = await response.json();
+
+    document.getElementById("jobDetails").innerHTML = `
+        <h2>${job.complianceType}</h2>
+
+        <p><strong>Property:</strong> ${job.propertyAddress}</p>
+
+        <p><strong>Landlord:</strong> ${job.landlordName}</p>
+
+        <p><strong>Email:</strong> ${job.landlordEmail}</p>
+
+        <p><strong>Phone:</strong> ${job.landlordPhone}</p>
+
+        <p><strong>Company:</strong> ${job.landlordCompany}</p>
+
+        <p><strong>Message:</strong><br>${job.message}</p>
+
+        <p>
+            <span class="status">
+                ${job.status}
+            </span>
+        </p>
+    `;
+
+    document.getElementById("status").value = job.status || "Requested";
+    document.getElementById("quotedPrice").value = job.quotedPrice || "";
+    document.getElementById("bookedDate").value = job.bookedDate || "";
+    document.getElementById("bookedTime").value = job.bookedTime || "";
+    document.getElementById("contractorNotes").value = job.contractorNotes || "";
+
+}
+
+document.getElementById("updateForm").addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const response = await fetch(`/api/contractor-job/${token}/update`,{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            status:document.getElementById("status").value,
+            quotedPrice:document.getElementById("quotedPrice").value,
+            bookedDate:document.getElementById("bookedDate").value,
+            bookedTime:document.getElementById("bookedTime").value,
+            contractorNotes:document.getElementById("contractorNotes").value
+        })
+    });
+
+    const result = await response.json();
+
+    if(result.success){
+
+        document.getElementById("message").innerHTML =
+            "Job updated successfully.";
+
+        loadJob();
+    }
+
+});
+
+loadJob();
+
+</script>
+
+</body>
+</html>
