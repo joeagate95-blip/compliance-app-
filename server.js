@@ -56,3 +56,98 @@ app.post('/api/reminders/run',auth, async (req,res)=>{ const user=currentUser(re
 cron.schedule('0 8 * * *',()=>{ try{ const due=dueDocs(); if(due.length){ const db=read(); due.forEach(d=>db.reminders.unshift({id:uuid(), at:new Date().toISOString(), documentId:d.id, message:`${d.category} expires in ${d.daysLeft} days`})); write(db); } }catch(e){console.error(e)} });
 app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.listen(PORT,()=>console.log(`Landlord Compliance Hub running on http://localhost:${PORT}`));
+// Contractor job requests and booking updates
+app.post('/api/contractor-jobs', auth, (req, res) => {
+  const db = read();
+  db.contractorJobs = db.contractorJobs || [];
+
+  const user = currentUser(req);
+  const property = db.properties.find(p => p.id === req.body.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access to property' });
+  }
+
+  const token = uuid();
+
+  const job = {
+    id: uuid(),
+    token,
+    propertyId: property.id,
+    propertyAddress: property.address,
+    contractorId: req.body.contractorId || '',
+    contractorName: req.body.contractorName || '',
+    contractorEmail: req.body.contractorEmail || '',
+    complianceType: req.body.complianceType || 'Gas Safety',
+    landlordName: req.body.landlordName || user.name,
+    landlordEmail: req.body.landlordEmail || user.email,
+    landlordPhone: req.body.landlordPhone || '',
+    landlordCompany: req.body.landlordCompany || '',
+    message: req.body.message || '',
+    status: 'Requested',
+    quotedPrice: '',
+    bookedDate: '',
+    bookedTime: '',
+    contractorNotes: '',
+    createdBy: user.id,
+    createdAt: new Date().toISOString(),
+    updatedAt: ''
+  };
+
+  db.contractorJobs.unshift(job);
+
+  audit(db, 'Created contractor job request for ' + property.address, user);
+  write(db);
+
+  res.json({
+    success: true,
+    job,
+    contractorLink: `${req.protocol}://${req.get('host')}/contractor-job/${token}`
+  });
+});
+
+app.get('/api/contractor-jobs', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  const properties = db.properties.filter(p => propertyAccess(user, p));
+  const propertyIds = properties.map(p => p.id);
+
+  const jobs = (db.contractorJobs || []).filter(j =>
+    user.role === 'administrator' || propertyIds.includes(j.propertyId)
+  );
+
+  res.json(jobs);
+});
+
+app.get('/contractor-job/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'contractor-job.html'));
+});
+
+app.get('/api/contractor-job/:token', (req, res) => {
+  const db = read();
+  const job = (db.contractorJobs || []).find(j => j.token === req.params.token);
+
+  if (!job) return res.status(404).json({ error: 'Job not found' });
+
+  res.json(job);
+});
+
+app.post('/api/contractor-job/:token/update', (req, res) => {
+  const db = read();
+  const job = (db.contractorJobs || []).find(j => j.token === req.params.token);
+
+  if (!job) return res.status(404).json({ error: 'Job not found' });
+
+  job.status = req.body.status || job.status;
+  job.quotedPrice = req.body.quotedPrice || job.quotedPrice;
+  job.bookedDate = req.body.bookedDate || job.bookedDate;
+  job.bookedTime = req.body.bookedTime || job.bookedTime;
+  job.contractorNotes = req.body.contractorNotes || job.contractorNotes;
+  job.updatedAt = new Date().toISOString();
+
+  audit(db, 'Contractor updated job for ' + job.propertyAddress, { email: 'contractor-link' });
+  write(db);
+
+  res.json({ success: true, job });
+});
