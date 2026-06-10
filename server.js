@@ -444,7 +444,7 @@ app.get('/api/contractor-job/:token', (req, res) => {
   res.json(job);
 });
 
-app.post('/api/contractor-job/:token/update', (req, res) => {
+app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req, res) => {
   const db = read();
 
   const job = (db.contractorJobs || []).find(j => j.token === req.params.token);
@@ -459,6 +459,27 @@ app.post('/api/contractor-job/:token/update', (req, res) => {
   job.bookedTime = req.body.bookedTime || job.bookedTime;
   job.contractorNotes = req.body.contractorNotes || job.contractorNotes;
   job.updatedAt = new Date().toISOString();
+
+  if (req.file && job.status === 'Completed') {
+    const document = {
+      id: uuid(),
+      propertyId: job.propertyId,
+      category: job.complianceType || 'Gas Safety',
+      title: `${job.complianceType || 'Compliance'} Certificate`,
+      issueDate: req.body.issueDate || '',
+      expiryDate: req.body.expiryDate || '',
+      status: req.body.expiryDate ? 'Valid' : 'Stored',
+      fileName: req.file.filename,
+      notes: req.body.certificateNotes || 'Uploaded by contractor on job completion',
+      uploadedBy: 'contractor-job-link',
+      uploadedAt: new Date().toISOString()
+    };
+
+    db.documents.push(document);
+
+    job.completedCertificateId = document.id;
+    job.completedCertificateFile = req.file.filename;
+  }
 
   audit(db, 'Contractor updated job for ' + job.propertyAddress, { email: 'contractor-link' });
   write(db);
