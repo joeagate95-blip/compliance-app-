@@ -227,18 +227,23 @@ document.getElementById("updateForm").addEventListener("submit", async function(
         method:"POST",
         body:formData
     });
+const result = await response.json();
 
-    const result = await response.json();
+if(!response.ok){
 
-    if(result.success){
-        document.getElementById("message").innerHTML =
-            "Job updated successfully. If a certificate was uploaded, it has been saved into the property compliance folder.";
+    document.getElementById("message").innerHTML =
+        result.error || "There was a problem saving the update.";
 
-        loadJob();
-    } else {
-        document.getElementById("message").innerHTML =
-            "There was a problem saving the update.";
-    }
+    return;
+}
+
+if(result.success){
+
+    document.getElementById("message").innerHTML =
+        "Job updated successfully. If a certificate was uploaded, it has been saved into the property compliance folder.";
+
+    loadJob();
+}
 
 });
 
