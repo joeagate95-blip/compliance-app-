@@ -78,6 +78,14 @@ button:hover{
     color:green;
     margin-top:15px;
 }
+
+.notice{
+    background:#fff7e6;
+    border:1px solid #ffd27f;
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:15px;
+}
 </style>
 </head>
 <body>
@@ -94,11 +102,14 @@ button:hover{
 
         <h2>Update Job Status</h2>
 
-        <form id="updateForm">
+        <div class="notice">
+            If the job is complete, upload the completed certificate below. It will automatically be saved into the correct compliance folder for this property.
+        </div>
+
+        <form id="updateForm" enctype="multipart/form-data">
 
             <label>Status</label>
-
-            <select id="status">
+            <select id="status" name="status">
                 <option value="Requested">Requested</option>
                 <option value="Quote Sent">Quote Sent</option>
                 <option value="Booked In">Booked In</option>
@@ -107,16 +118,32 @@ button:hover{
             </select>
 
             <label>Quoted Price (£)</label>
-            <input type="text" id="quotedPrice">
+            <input type="text" id="quotedPrice" name="quotedPrice">
 
             <label>Booked Date</label>
-            <input type="date" id="bookedDate">
+            <input type="date" id="bookedDate" name="bookedDate">
 
             <label>Booked Time</label>
-            <input type="time" id="bookedTime">
+            <input type="time" id="bookedTime" name="bookedTime">
 
             <label>Contractor Notes</label>
-            <textarea id="contractorNotes" rows="5"></textarea>
+            <textarea id="contractorNotes" name="contractorNotes" rows="5"></textarea>
+
+            <hr>
+
+            <h2>Completed Certificate Upload</h2>
+
+            <label>Certificate Issue Date</label>
+            <input type="date" id="issueDate" name="issueDate">
+
+            <label>Certificate Expiry Date</label>
+            <input type="date" id="expiryDate" name="expiryDate">
+
+            <label>Upload Certificate PDF / Photo</label>
+            <input type="file" id="certificate" name="certificate">
+
+            <label>Certificate Notes</label>
+            <textarea id="certificateNotes" name="certificateNotes" rows="3"></textarea>
 
             <button type="submit">
                 Save Update
@@ -137,7 +164,6 @@ const token = window.location.pathname.split("/").pop();
 async function loadJob(){
 
     const response = await fetch(`/api/contractor-job/${token}`);
-
     const job = await response.json();
 
     document.getElementById("jobDetails").innerHTML = `
@@ -160,6 +186,12 @@ async function loadJob(){
                 ${job.status}
             </span>
         </p>
+
+        ${
+            job.completedCertificateFile
+            ? `<p class="success"><strong>Certificate uploaded:</strong> ${job.completedCertificateFile}</p>`
+            : ``
+        }
     `;
 
     document.getElementById("status").value = job.status || "Requested";
@@ -174,28 +206,38 @@ document.getElementById("updateForm").addEventListener("submit", async function(
 
     e.preventDefault();
 
+    const formData = new FormData();
+
+    formData.append("status", document.getElementById("status").value);
+    formData.append("quotedPrice", document.getElementById("quotedPrice").value);
+    formData.append("bookedDate", document.getElementById("bookedDate").value);
+    formData.append("bookedTime", document.getElementById("bookedTime").value);
+    formData.append("contractorNotes", document.getElementById("contractorNotes").value);
+    formData.append("issueDate", document.getElementById("issueDate").value);
+    formData.append("expiryDate", document.getElementById("expiryDate").value);
+    formData.append("certificateNotes", document.getElementById("certificateNotes").value);
+
+    const certificate = document.getElementById("certificate").files[0];
+
+    if(certificate){
+        formData.append("certificate", certificate);
+    }
+
     const response = await fetch(`/api/contractor-job/${token}/update`,{
         method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-            status:document.getElementById("status").value,
-            quotedPrice:document.getElementById("quotedPrice").value,
-            bookedDate:document.getElementById("bookedDate").value,
-            bookedTime:document.getElementById("bookedTime").value,
-            contractorNotes:document.getElementById("contractorNotes").value
-        })
+        body:formData
     });
 
     const result = await response.json();
 
     if(result.success){
-
         document.getElementById("message").innerHTML =
-            "Job updated successfully.";
+            "Job updated successfully. If a certificate was uploaded, it has been saved into the property compliance folder.";
 
         loadJob();
+    } else {
+        document.getElementById("message").innerHTML =
+            "There was a problem saving the update.";
     }
 
 });
