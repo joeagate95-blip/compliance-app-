@@ -223,7 +223,68 @@ app.post('/api/documents', auth, upload.single('file'), (req, res) => {
 app.get('/api/download/:file', auth, (req, res) => {
   res.download(path.join(uploadDir, req.params.file));
 });
+/* DOCUMENT CONTROL */
 
+app.put('/api/documents/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  const doc = db.documents.find(d => d.id === req.params.id);
+
+  if (!doc) {
+    return res.status(404).json({ error: 'Document not found' });
+  }
+
+  const property = db.properties.find(p => p.id === doc.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  doc.category = req.body.category || doc.category;
+  doc.title = req.body.title || doc.title;
+  doc.issueDate = req.body.issueDate || '';
+  doc.expiryDate = req.body.expiryDate || '';
+  doc.status = req.body.expiryDate ? 'Valid' : 'Stored';
+  doc.notes = req.body.notes || '';
+  doc.updatedAt = new Date().toISOString();
+  doc.updatedBy = user.id;
+
+  audit(db, 'Updated document ' + doc.title, user);
+  write(db);
+
+  res.json({
+    success: true,
+    document: doc
+  });
+});
+
+app.delete('/api/documents/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  const docIndex = db.documents.findIndex(d => d.id === req.params.id);
+
+  if (docIndex === -1) {
+    return res.status(404).json({ error: 'Document not found' });
+  }
+
+  const doc = db.documents[docIndex];
+  const property = db.properties.find(p => p.id === doc.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  db.documents.splice(docIndex, 1);
+
+  audit(db, 'Deleted document ' + doc.title, user);
+  write(db);
+
+  res.json({
+    success: true
+  });
+});
 /* CONTRACTORS */
 
 app.post('/api/contractors', auth, (req, res) => {
@@ -453,7 +514,17 @@ app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req
     return res.status(404).json({ error: 'Job not found' });
   }
 
-  job.status = req.body.status || job.status;
+  const newStatus = req.body.status || job.status;
+
+  if (newStatus === 'Completed' && req.file) {
+    if (!req.body.issueDate || !req.body.expiryDate) {
+      return res.status(400).json({
+        error: 'Issue date and expiry date are required when uploading a completed certificate.'
+      });
+    }
+  }
+
+  job.status = newStatus;
   job.quotedPrice = req.body.quotedPrice || job.quotedPrice;
   job.bookedDate = req.body.bookedDate || job.bookedDate;
   job.bookedTime = req.body.bookedTime || job.bookedTime;
@@ -466,9 +537,9 @@ app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req
       propertyId: job.propertyId,
       category: job.complianceType || 'Gas Safety',
       title: `${job.complianceType || 'Compliance'} Certificate`,
-      issueDate: req.body.issueDate || '',
-      expiryDate: req.body.expiryDate || '',
-      status: req.body.expiryDate ? 'Valid' : 'Stored',
+      issueDate: req.body.issueDate,
+      expiryDate: req.body.expiryDate,
+      status: 'Valid',
       fileName: req.file.filename,
       notes: req.body.certificateNotes || 'Uploaded by contractor on job completion',
       uploadedBy: 'contractor-job-link',
