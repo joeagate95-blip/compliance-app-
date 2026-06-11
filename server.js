@@ -375,11 +375,11 @@ app.get('/contractor-upload/:token', (req, res) => {
       </div>
       <div class="field">
         <label>Issue date</label>
-        <input type="date" name="issueDate">
+<input type="date" name="issueDate" required>
       </div>
       <div class="field">
         <label>Expiry date</label>
-        <input type="date" name="expiryDate">
+<input type="date" name="expiryDate" required>
       </div>
       <div class="field">
         <label>Upload PDF/photo</label>
@@ -403,7 +403,14 @@ app.post('/contractor-upload/:token', upload.single('file'), (req, res) => {
   }
 
   const p = db.properties.find(x => x.id === link.propertyId);
-
+if (!req.body.issueDate || !req.body.expiryDate || !req.file) {
+  return res.status(400).send(
+    publicLayout(
+      'Upload incomplete',
+      '<p>Issue date, expiry date and certificate upload are required before submitting.</p>'
+    )
+  );
+}
   const d = {
     id: uuid(),
     propertyId: p.id,
