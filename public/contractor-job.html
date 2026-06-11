@@ -4,194 +4,113 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contractor Job Portal</title>
-
 <style>
-body{
-    font-family: Arial, sans-serif;
-    background:#f4f8fc;
-    margin:0;
-    padding:0;
-}
-
-.container{
-    max-width:900px;
-    margin:40px auto;
-    background:#fff;
-    padding:30px;
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.1);
-}
-
-h1{
-    color:#0057A8;
-    margin-bottom:20px;
-}
-
-.card{
-    background:#f9fbff;
-    border:1px solid #d9e6f5;
-    padding:20px;
-    border-radius:10px;
-    margin-bottom:20px;
-}
-
-label{
-    display:block;
-    margin-bottom:8px;
-    font-weight:bold;
-}
-
-input,
-select,
-textarea{
-    width:100%;
-    padding:10px;
-    border:1px solid #ccc;
-    border-radius:6px;
-    margin-bottom:15px;
-    box-sizing:border-box;
-}
-
-button{
-    background:#0057A8;
-    color:white;
-    border:none;
-    padding:12px 20px;
-    border-radius:6px;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#004080;
-}
-
-.status{
-    display:inline-block;
-    padding:8px 12px;
-    border-radius:6px;
-    background:#e8f2ff;
-    color:#0057A8;
-    font-weight:bold;
-}
-
-.success{
-    color:green;
-    margin-top:15px;
-}
-
-.notice{
-    background:#fff7e6;
-    border:1px solid #ffd27f;
-    padding:12px;
-    border-radius:8px;
-    margin-bottom:15px;
-}
+body{font-family:Arial,sans-serif;background:#f4f8fc;margin:0;padding:0}
+.container{max-width:900px;margin:40px auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+h1{color:#0057A8}
+.card{background:#f9fbff;border:1px solid #d9e6f5;padding:20px;border-radius:10px;margin-bottom:20px}
+label{display:block;margin-bottom:8px;font-weight:bold}
+input,select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;margin-bottom:15px;box-sizing:border-box}
+button{background:#0057A8;color:white;border:none;padding:12px 20px;border-radius:6px;cursor:pointer}
+button:disabled{background:#999;cursor:not-allowed}
+.status{display:inline-block;padding:8px 12px;border-radius:6px;background:#e8f2ff;color:#0057A8;font-weight:bold}
+.success{color:green;margin-top:15px}
+.error{color:red;margin-top:15px;font-weight:bold}
 </style>
 </head>
 <body>
 
 <div class="container">
+<h1>Contractor Job Portal</h1>
 
-    <h1>Contractor Job Portal</h1>
+<div id="jobDetails" class="card">Loading job details...</div>
 
-    <div id="jobDetails" class="card">
-        Loading job details...
-    </div>
+<div class="card">
+<h2>Update Job Status</h2>
 
-    <div class="card">
+<form id="updateForm" enctype="multipart/form-data">
 
-        <h2>Update Job Status</h2>
+<label>Status</label>
+<select id="status" name="status">
+<option value="Requested">Requested</option>
+<option value="Quote Sent">Quote Sent</option>
+<option value="Booked In">Booked In</option>
+<option value="Completed">Completed</option>
+<option value="Unable To Attend">Unable To Attend</option>
+</select>
 
-        <div class="notice">
-            If the job is complete, upload the completed certificate below. It will automatically be saved into the correct compliance folder for this property.
-        </div>
+<label>Quoted Price (£)</label>
+<input type="text" id="quotedPrice" name="quotedPrice">
 
-        <form id="updateForm" enctype="multipart/form-data">
+<label>Booked Date</label>
+<input type="date" id="bookedDate" name="bookedDate">
 
-            <label>Status</label>
-            <select id="status" name="status">
-                <option value="Requested">Requested</option>
-                <option value="Quote Sent">Quote Sent</option>
-                <option value="Booked In">Booked In</option>
-                <option value="Completed">Completed</option>
-                <option value="Unable To Attend">Unable To Attend</option>
-            </select>
+<label>Booked Time</label>
+<input type="time" id="bookedTime" name="bookedTime">
 
-            <label>Quoted Price (£)</label>
-            <input type="text" id="quotedPrice" name="quotedPrice">
+<label>Contractor Notes</label>
+<textarea id="contractorNotes" name="contractorNotes" rows="5"></textarea>
 
-            <label>Booked Date</label>
-            <input type="date" id="bookedDate" name="bookedDate">
+<hr>
 
-            <label>Booked Time</label>
-            <input type="time" id="bookedTime" name="bookedTime">
+<h2>Completed Certificate Upload</h2>
 
-            <label>Contractor Notes</label>
-            <textarea id="contractorNotes" name="contractorNotes" rows="5"></textarea>
+<label>Certificate Issue Date REQUIRED</label>
+<input type="date" id="issueDate" name="issueDate" required>
 
-            <hr>
+<label>Certificate Expiry Date REQUIRED</label>
+<input type="date" id="expiryDate" name="expiryDate" required>
 
-            <h2>Completed Certificate Upload</h2>
+<label>Upload Certificate PDF / Photo REQUIRED</label>
+<input type="file" id="certificate" name="certificate" required>
 
-            <label>Certificate Issue Date</label>
-            <input type="date" id="issueDate" name="issueDate">
+<label>Certificate Notes</label>
+<textarea id="certificateNotes" name="certificateNotes" rows="3"></textarea>
 
-            <label>Certificate Expiry Date</label>
-            <input type="date" id="expiryDate" name="expiryDate">
+<button id="saveBtn" type="submit" disabled>Save Update</button>
 
-            <label>Upload Certificate PDF / Photo</label>
-            <input type="file" id="certificate" name="certificate">
+</form>
 
-            <label>Certificate Notes</label>
-            <textarea id="certificateNotes" name="certificateNotes" rows="3"></textarea>
-
-            <button type="submit">
-                Save Update
-            </button>
-
-        </form>
-
-        <div id="message" class="success"></div>
-
-    </div>
-
+<div id="message" class="error">
+You must enter issue date, expiry date and upload the certificate before saving.
+</div>
+</div>
 </div>
 
 <script>
-
 const token = window.location.pathname.split("/").pop();
 
-async function loadJob(){
+function validateRequiredFields(){
+    const issueDate = document.getElementById("issueDate").value;
+    const expiryDate = document.getElementById("expiryDate").value;
+    const certificate = document.getElementById("certificate").files.length > 0;
+    const saveBtn = document.getElementById("saveBtn");
+    const message = document.getElementById("message");
 
+    if(issueDate && expiryDate && certificate){
+        saveBtn.disabled = false;
+        message.className = "success";
+        message.innerHTML = "Ready to save.";
+    } else {
+        saveBtn.disabled = true;
+        message.className = "error";
+        message.innerHTML = "You must enter issue date, expiry date and upload the certificate before saving.";
+    }
+}
+
+async function loadJob(){
     const response = await fetch(`/api/contractor-job/${token}`);
     const job = await response.json();
 
     document.getElementById("jobDetails").innerHTML = `
         <h2>${job.complianceType}</h2>
-
         <p><strong>Property:</strong> ${job.propertyAddress}</p>
-
         <p><strong>Landlord:</strong> ${job.landlordName}</p>
-
         <p><strong>Email:</strong> ${job.landlordEmail}</p>
-
         <p><strong>Phone:</strong> ${job.landlordPhone}</p>
-
         <p><strong>Company:</strong> ${job.landlordCompany}</p>
-
         <p><strong>Message:</strong><br>${job.message}</p>
-
-        <p>
-            <span class="status">
-                ${job.status}
-            </span>
-        </p>
-
-        ${
-            job.completedCertificateFile
-            ? `<p class="success"><strong>Certificate uploaded:</strong> ${job.completedCertificateFile}</p>`
-            : ``
-        }
+        <p><span class="status">${job.status}</span></p>
     `;
 
     document.getElementById("status").value = job.status || "Requested";
@@ -200,32 +119,30 @@ async function loadJob(){
     document.getElementById("bookedTime").value = job.bookedTime || "";
     document.getElementById("contractorNotes").value = job.contractorNotes || "";
 
+    validateRequiredFields();
 }
 
-document.getElementById("updateForm").addEventListener("submit", async function(e){
+["issueDate","expiryDate","certificate"].forEach(id=>{
+    document.getElementById(id).addEventListener("change",validateRequiredFields);
+    document.getElementById(id).addEventListener("input",validateRequiredFields);
+});
 
+document.getElementById("updateForm").addEventListener("submit", async function(e){
     e.preventDefault();
 
-    const status = document.getElementById("status").value;
     const issueDate = document.getElementById("issueDate").value;
     const expiryDate = document.getElementById("expiryDate").value;
-    const certificateInput = document.getElementById("certificate");
-    const certificateFile = certificateInput.files && certificateInput.files.length > 0
-        ? certificateInput.files[0]
-        : null;
+    const certificate = document.getElementById("certificate").files[0];
 
-    if(status === "Completed" && (!issueDate || !expiryDate || !certificateFile)){
-
-        document.getElementById("message").style.color = "red";
+    if(!issueDate || !expiryDate || !certificate){
+        document.getElementById("message").className = "error";
         document.getElementById("message").innerHTML =
-            "To mark this job as Completed, you must upload the certificate and enter both the issue date and expiry date.";
-
+            "You must enter issue date, expiry date and upload the certificate before saving.";
         return;
     }
 
     const formData = new FormData();
-
-    formData.append("status", status);
+    formData.append("status", "Completed");
     formData.append("quotedPrice", document.getElementById("quotedPrice").value);
     formData.append("bookedDate", document.getElementById("bookedDate").value);
     formData.append("bookedTime", document.getElementById("bookedTime").value);
@@ -233,10 +150,7 @@ document.getElementById("updateForm").addEventListener("submit", async function(
     formData.append("issueDate", issueDate);
     formData.append("expiryDate", expiryDate);
     formData.append("certificateNotes", document.getElementById("certificateNotes").value);
-
-    if(certificateFile){
-        formData.append("certificate", certificateFile);
-    }
+    formData.append("certificate", certificate);
 
     const response = await fetch(`/api/contractor-job/${token}/update`,{
         method:"POST",
@@ -246,27 +160,19 @@ document.getElementById("updateForm").addEventListener("submit", async function(
     const result = await response.json();
 
     if(!response.ok){
-
-        document.getElementById("message").style.color = "red";
-        document.getElementById("message").innerHTML =
-            result.error || "There was a problem saving the update.";
-
+        document.getElementById("message").className = "error";
+        document.getElementById("message").innerHTML = result.error || "There was a problem saving.";
         return;
     }
 
-    if(result.success){
+    document.getElementById("message").className = "success";
+    document.getElementById("message").innerHTML =
+        "Job completed successfully. Certificate has been uploaded to the property compliance folder.";
 
-        document.getElementById("message").style.color = "green";
-        document.getElementById("message").innerHTML =
-            "Job updated successfully. If a certificate was uploaded, it has been saved into the property compliance folder.";
-
-        loadJob();
-    }
-
+    loadJob();
 });
 
 loadJob();
-
 </script>
 
 </body>
