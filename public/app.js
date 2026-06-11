@@ -332,22 +332,131 @@ function documents(){
 
   <div class="card">
     <h2>${state.selected?state.data.properties.find(p=>p.id===state.selected)?.address:'All Uploaded Documents'}</h2>
+
     <table>
-      <tr><th>Property</th><th>Category</th><th>Document</th><th>Issue</th><th>Expiry</th><th>File</th></tr>
+      <tr>
+        <th>Property</th>
+        <th>Category</th>
+        <th>Document</th>
+        <th>Issue</th>
+        <th>Expiry</th>
+        <th>File</th>
+        <th>Actions</th>
+      </tr>
+
       ${docs.map(d=>{
         const p=state.data.properties.find(x=>x.id===d.propertyId);
+
         return `
         <tr>
           <td>${p?.address||''}</td>
           <td>${d.category}</td>
-          <td><b>${d.title}</b><br><span class="muted">${d.notes||''}</span></td>
+          <td>
+            <b>${d.title}</b><br>
+            <span class="muted">${d.notes||''}</span>
+          </td>
           <td>${fmt(d.issueDate)}</td>
           <td>${fmt(d.expiryDate)}</td>
           <td>${d.fileName?`<a href="/api/download/${d.fileName}">Download</a>`:'No file'}</td>
+          <td>
+            <button class="btn2" onclick="openEditDocument('${d.id}')">Edit</button>
+            <button class="btn2" onclick="deleteDocument('${d.id}')">Delete</button>
+          </td>
         </tr>`;
-      }).join('')||'<tr><td colspan="6">No documents uploaded yet.</td></tr>'}
+      }).join('')||'<tr><td colspan="7">No documents uploaded yet.</td></tr>'}
     </table>
   </div>`;
+}
+function openEditDocument(id){
+  const d=state.data.documents.find(x=>x.id===id);
+  if(!d){
+    alert('Document not found');
+    return;
+  }
+
+  const categories=[
+    'Gas Safety',
+    'Electrical',
+    'EICR',
+    'PAT Testing',
+    'EPC',
+    'Legionella',
+    'Smoke & CO Alarms',
+    'Fire Safety',
+    'Tenant Contracts'
+  ];
+
+  modal(`
+    <h2>Edit Document</h2>
+
+    <form id="editDocForm">
+      <div class="field">
+        <label>Category</label>
+        <select name="category">
+          ${categories.map(c=>`
+            <option value="${c}" ${d.category===c?'selected':''}>${c}</option>
+          `).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Document Title</label>
+        <input name="title" value="${d.title||''}" required>
+      </div>
+
+      <div class="field">
+        <label>Issue Date</label>
+        <input type="date" name="issueDate" value="${d.issueDate||''}">
+      </div>
+
+      <div class="field">
+        <label>Expiry Date</label>
+        <input type="date" name="expiryDate" value="${d.expiryDate||''}">
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea name="notes">${d.notes||''}</textarea>
+      </div>
+
+      <button>Save Changes</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+    </form>
+  `);
+
+  $('#editDocForm').onsubmit=async e=>{
+    e.preventDefault();
+
+    await api('/api/documents/'+id,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.fromEntries(new FormData(e.target)))
+    });
+
+    closeModal();
+    await load();
+    render();
+  };
+}
+
+async function deleteDocument(id){
+  const d=state.data.documents.find(x=>x.id===id);
+
+  if(!d){
+    alert('Document not found');
+    return;
+  }
+
+  if(!confirm('Delete this document? This cannot be undone.')){
+    return;
+  }
+
+  await api('/api/documents/'+id,{
+    method:'DELETE'
+  });
+
+  await load();
+  render();
 }
 
 function tenants(){
