@@ -28,7 +28,8 @@ tenants:'Tenant Contracts',
 contractorCentre:'Contractor Centre',
 reviews:'Property Condition Reviews',
 maintenance:'Maintenance Reports',
-admin:'Admin Dashboard'
+admin:'Admin Dashboard',
+landlordDetails:'Landlord Details'
   })[s]||s;
 }
 
@@ -94,6 +95,7 @@ function layout(content){
   'contractorCentre',
   'reviews',
   'maintenance',
+   'landlordDetails',
   'admin'
 ];
 
@@ -140,20 +142,19 @@ function layout(content){
 }
 
 function render(){
-  const views={
-    dashboard,
-    properties,
-    compliance,
-    expiry,
-    documents,
-    tenants,
-    contractors,
-    contractorCentre,
-    reviews,
-    maintenance,
-    premium,
-    admin
-  };
+const views={
+dashboard,
+properties,
+compliance,
+expiry,
+documents,
+tenants,
+contractorCentre,
+reviews,
+maintenance,
+landlordDetails,
+admin
+};
   layout((views[state.view]||dashboard)());
 }
 
@@ -869,35 +870,39 @@ function premium(){
   </div>`;
 }
 
-function admin(){
-  setTimeout(loadAdminAnalytics,100);
+function landlordDetails(){
+
+  const user = state.user || {};
+
+  const shareText = `
+Landlord Details
+
+Name: ${user.name || ''}
+Email: ${user.email || ''}
+Phone: ${user.phone || ''}
+Company: ${user.company || ''}
+
+Please use the above details when arranging access, certificates or remedial works.
+`;
+
   return `
-  <div class="grid">
-    <div class="card span12">
-      <h2>Platform Analytics</h2>
-      <div id="adminAnalytics" class="grid">
-        <div class="card span3"><h2>Loading...</h2></div>
-      </div>
-    </div>
+    <div class="card">
+      <h2>Landlord Details</h2>
 
-    <div class="card span4">
-      <h2>Users</h2>
-      ${state.data.users.map(u=>`<p><b>${u.name}</b><br>${u.email}<br><span class="pill">${u.role}</span></p>`).join('')}
-    </div>
+      <p><b>Name:</b> ${user.name || 'Not set'}</p>
+      <p><b>Email:</b> ${user.email || 'Not set'}</p>
+      <p><b>Phone:</b> ${user.phone || 'Not set'}</p>
+      <p><b>Company:</b> ${user.company || 'Not set'}</p>
 
-    <div class="card span8">
-      <h2>All Client Folders / Properties</h2>
-      ${propertyTable(state.data.properties)}
-    </div>
+      <br>
 
-    <div class="card span12">
-      <h2>Audit Log</h2>
-      <button onclick="runReminders()">Run Reminder Check</button>
-      ${state.data.audit.map(a=>`
-        <p><span class="pill">${new Date(a.at).toLocaleString('en-GB')}</span> ${a.action} <span class="muted">${a.user||''}</span></p>
-      `).join('')}
+      <button class="btn"
+        onclick="navigator.clipboard.writeText(\`${shareText}\`);
+        alert('Landlord details copied to clipboard');">
+        Share My Information
+      </button>
     </div>
-  </div>`;
+  `;
 }
 
 async function loadAdminAnalytics(){
