@@ -206,57 +206,62 @@ document.getElementById("updateForm").addEventListener("submit", async function(
 
     e.preventDefault();
 
-    const formData = new FormData();
-
-    formData.append("status", document.getElementById("status").value);
-    formData.append("quotedPrice", document.getElementById("quotedPrice").value);
-    formData.append("bookedDate", document.getElementById("bookedDate").value);
-    formData.append("bookedTime", document.getElementById("bookedTime").value);
-    formData.append("contractorNotes", document.getElementById("contractorNotes").value);
-    formData.append("issueDate", document.getElementById("issueDate").value);
-    formData.append("expiryDate", document.getElementById("expiryDate").value);
-    formData.append("certificateNotes", document.getElementById("certificateNotes").value);
-if(document.getElementById("status").value === "Completed"){
-
+    const status = document.getElementById("status").value;
     const issueDate = document.getElementById("issueDate").value;
     const expiryDate = document.getElementById("expiryDate").value;
-    const certificateFile = document.getElementById("certificate").files[0];
+    const certificateInput = document.getElementById("certificate");
+    const certificateFile = certificateInput.files && certificateInput.files.length > 0
+        ? certificateInput.files[0]
+        : null;
 
-    if(!issueDate || !expiryDate || !certificateFile){
+    if(status === "Completed" && (!issueDate || !expiryDate || !certificateFile)){
 
+        document.getElementById("message").style.color = "red";
         document.getElementById("message").innerHTML =
             "To mark this job as Completed, you must upload the certificate and enter both the issue date and expiry date.";
 
         return;
     }
-}
-    const certificate = document.getElementById("certificate").files[0];
 
-    if(certificate){
-        formData.append("certificate", certificate);
+    const formData = new FormData();
+
+    formData.append("status", status);
+    formData.append("quotedPrice", document.getElementById("quotedPrice").value);
+    formData.append("bookedDate", document.getElementById("bookedDate").value);
+    formData.append("bookedTime", document.getElementById("bookedTime").value);
+    formData.append("contractorNotes", document.getElementById("contractorNotes").value);
+    formData.append("issueDate", issueDate);
+    formData.append("expiryDate", expiryDate);
+    formData.append("certificateNotes", document.getElementById("certificateNotes").value);
+
+    if(certificateFile){
+        formData.append("certificate", certificateFile);
     }
 
     const response = await fetch(`/api/contractor-job/${token}/update`,{
         method:"POST",
         body:formData
     });
-const result = await response.json();
 
-if(!response.ok){
+    const result = await response.json();
 
-    document.getElementById("message").innerHTML =
-        result.error || "There was a problem saving the update.";
+    if(!response.ok){
 
-    return;
-}
+        document.getElementById("message").style.color = "red";
+        document.getElementById("message").innerHTML =
+            result.error || "There was a problem saving the update.";
 
-if(result.success){
+        return;
+    }
 
-    document.getElementById("message").innerHTML =
-        "Job updated successfully. If a certificate was uploaded, it has been saved into the property compliance folder.";
+    if(result.success){
 
-    loadJob();
-}
+        document.getElementById("message").style.color = "green";
+        document.getElementById("message").innerHTML =
+            "Job updated successfully. If a certificate was uploaded, it has been saved into the property compliance folder.";
+
+        loadJob();
+    }
 
 });
 
