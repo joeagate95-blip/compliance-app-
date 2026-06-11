@@ -289,6 +289,7 @@ function compliance(){
 
 function expiry(){
   let rows=allItems().sort((a,b)=>new Date(a.exp||'2999')-new Date(b.exp||'2999'));
+
   if(state.filter==='expired') rows=rows.filter(r=>statusFor(r.exp)==='Expired');
   if(state.filter==='due') rows=rows.filter(r=>statusFor(r.exp)==='Due Soon');
 
@@ -301,14 +302,28 @@ function expiry(){
 
   <div class="card">
     <table>
-      <tr><th>Property</th><th>Compliance Area</th><th>Expiry / Due Date</th><th>Status</th></tr>
+      <tr>
+        <th>Property</th>
+        <th>Compliance Area</th>
+        <th>Expiry / Due Date</th>
+        <th>Status</th>
+      </tr>
+
       ${rows.map(r=>{
         const p=state.data.properties.find(x=>x.id===r.propertyId);
         const st=statusFor(r.exp);
+
+        const link = r.fileName
+          ? `<a href="/api/download/${r.fileName}" target="_blank">${r.item}</a>`
+          : r.item;
+
         return `
         <tr>
           <td>${p?.address||''}</td>
-          <td>${r.item}<br><span class="muted">${r.title||''}</span></td>
+          <td>
+            <b>${link}</b><br>
+            <span class="muted">${r.title||''}</span>
+          </td>
           <td>${fmt(r.exp)}</td>
           <td class="${statusClass(st)}"><b>${st}</b></td>
         </tr>`;
@@ -319,6 +334,7 @@ function expiry(){
 
 function documents(){
   let docs=state.data.documents;
+
   if(state.selected) docs=docs.filter(d=>d.propertyId===state.selected);
   if(state.filter) docs=docs.filter(d=>d.category===state.filter);
 
@@ -340,30 +356,32 @@ function documents(){
         <th>Document</th>
         <th>Issue</th>
         <th>Expiry</th>
-        <th>File</th>
         <th>Actions</th>
       </tr>
 
       ${docs.map(d=>{
         const p=state.data.properties.find(x=>x.id===d.propertyId);
 
+        const docLink = d.fileName
+          ? `<a href="/api/download/${d.fileName}" target="_blank"><b>${d.title}</b></a>`
+          : `<b>${d.title}</b>`;
+
         return `
         <tr>
           <td>${p?.address||''}</td>
           <td>${d.category}</td>
           <td>
-            <b>${d.title}</b><br>
+            ${docLink}<br>
             <span class="muted">${d.notes||''}</span>
           </td>
           <td>${fmt(d.issueDate)}</td>
           <td>${fmt(d.expiryDate)}</td>
-          <td>${d.fileName?`<a href="/api/download/${d.fileName}">Download</a>`:'No file'}</td>
           <td>
             <button class="btn2" onclick="openEditDocument('${d.id}')">Edit</button>
             <button class="btn2" onclick="deleteDocument('${d.id}')">Delete</button>
           </td>
         </tr>`;
-      }).join('')||'<tr><td colspan="7">No documents uploaded yet.</td></tr>'}
+      }).join('')||'<tr><td colspan="6">No documents uploaded yet.</td></tr>'}
     </table>
   </div>`;
 }
@@ -460,12 +478,51 @@ async function deleteDocument(id){
 }
 
 function tenants(){
+  const tenantDocs = state.data.documents.filter(d =>
+    d.category === 'Tenant Contracts'
+  );
+
   return `
   <div class="card">
     <h2>Tenant Contracts</h2>
-    <p class="muted">Signed ASTs, deposit protection certificates, Right to Rent checks, inventories and prescribed information.</p>
-    ${documents().replace('<div class="tabs">','<div style="display:none">')}
+    <p class="muted">
+      Signed ASTs, deposit protection certificates, Right to Rent checks, inventories and prescribed information.
+    </p>
+
+    <table>
+      <tr>
+        <th>Property</th>
+        <th>Document</th>
+        <th>Issue</th>
+        <th>Expiry</th>
+        <th>Actions</th>
+      </tr>
+
+      ${tenantDocs.map(d=>{
+        const p=state.data.properties.find(x=>x.id===d.propertyId);
+
+        const docLink = d.fileName
+          ? `<a href="/api/download/${d.fileName}" target="_blank"><b>${d.title}</b></a>`
+          : `<b>${d.title}</b>`;
+
+        return `
+        <tr>
+          <td>${p?.address||''}</td>
+          <td>
+            ${docLink}<br>
+            <span class="muted">${d.notes||''}</span>
+          </td>
+          <td>${fmt(d.issueDate)}</td>
+          <td>${fmt(d.expiryDate)}</td>
+          <td>
+            <button class="btn2" onclick="openEditDocument('${d.id}')">Edit</button>
+            <button class="btn2" onclick="deleteDocument('${d.id}')">Delete</button>
+          </td>
+        </tr>`;
+      }).join('')||'<tr><td colspan="5">No tenant documents uploaded yet.</td></tr>'}
+    </table>
   </div>`;
+}
 }
 
 function contractors(){
