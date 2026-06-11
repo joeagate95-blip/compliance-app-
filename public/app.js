@@ -872,35 +872,55 @@ function premium(){
 
 function landlordDetails(){
 
-  const user = state.user || {};
-
-  const shareText = `
-Landlord Details
-
-Name: ${user.name || ''}
-Email: ${user.email || ''}
-Phone: ${user.phone || ''}
-Company: ${user.company || ''}
-
-Please use the above details when arranging access, certificates or remedial works.
-`;
+  const saved = JSON.parse(localStorage.getItem('landlordDetails') || '{}');
 
   return `
     <div class="card">
       <h2>Landlord Details</h2>
+      <p class="muted">Save your details here so they can be copied and shared with contractors.</p>
 
-      <p><b>Name:</b> ${user.name || 'Not set'}</p>
-      <p><b>Email:</b> ${user.email || 'Not set'}</p>
-      <p><b>Phone:</b> ${user.phone || 'Not set'}</p>
-      <p><b>Company:</b> ${user.company || 'Not set'}</p>
+      <div class="field">
+        <label>Full Name</label>
+        <input id="ldName" value="${saved.name || state.user.name || ''}">
+      </div>
 
-      <br>
+      <div class="field">
+        <label>Company Name</label>
+        <input id="ldCompany" value="${saved.company || ''}">
+      </div>
 
-      <button class="btn"
-        onclick="navigator.clipboard.writeText(\`${shareText}\`);
-        alert('Landlord details copied to clipboard');">
-        Share My Information
-      </button>
+      <div class="field">
+        <label>Email Address</label>
+        <input id="ldEmail" value="${saved.email || state.user.email || ''}">
+      </div>
+
+      <div class="field">
+        <label>Phone Number</label>
+        <input id="ldPhone" value="${saved.phone || ''}">
+      </div>
+
+      <div class="field">
+        <label>Address Line 1</label>
+        <input id="ldAddress1" value="${saved.address1 || ''}">
+      </div>
+
+      <div class="field">
+        <label>Address Line 2</label>
+        <input id="ldAddress2" value="${saved.address2 || ''}">
+      </div>
+
+      <div class="field">
+        <label>Town / City</label>
+        <input id="ldCity" value="${saved.city || ''}">
+      </div>
+
+      <div class="field">
+        <label>Postcode</label>
+        <input id="ldPostcode" value="${saved.postcode || ''}">
+      </div>
+
+      <button onclick="saveLandlordDetails()">Save Details</button>
+      <button class="btn2" onclick="copyLandlordDetails()">Share My Information</button>
     </div>
   `;
 }
