@@ -216,16 +216,19 @@ document.getElementById("updateForm").addEventListener("submit", async function(
     formData.append("issueDate", document.getElementById("issueDate").value);
     formData.append("expiryDate", document.getElementById("expiryDate").value);
     formData.append("certificateNotes", document.getElementById("certificateNotes").value);
-if(
-    document.getElementById("status").value === "Completed" &&
-    (
-        !document.getElementById("issueDate").value ||
-        !document.getElementById("expiryDate").value
-    )
-){
-    document.getElementById("message").innerHTML =
-        "You must enter both the certificate issue date and expiry date before marking this job as completed.";
-    return;
+if(document.getElementById("status").value === "Completed"){
+
+    const issueDate = document.getElementById("issueDate").value;
+    const expiryDate = document.getElementById("expiryDate").value;
+    const certificateFile = document.getElementById("certificate").files[0];
+
+    if(!issueDate || !expiryDate || !certificateFile){
+
+        document.getElementById("message").innerHTML =
+            "To mark this job as Completed, you must upload the certificate and enter both the issue date and expiry date.";
+
+        return;
+    }
 }
     const certificate = document.getElementById("certificate").files[0];
 
