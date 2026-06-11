@@ -523,7 +523,6 @@ function tenants(){
     </table>
   </div>`;
 }
-}
 
 function contractors(){
   return `
