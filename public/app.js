@@ -103,7 +103,6 @@ function layout(content){
   <div class="shell">
     <aside class="side">
       <div class="logo">Compliance Hub</div>
-      <p class="muted">${state.user.name}<br>${state.user.role.replace('_',' ')}</p>
       ${nav.filter(n=>n!=='admin'||state.user.role==='administrator').map(n=>`
         <a href="#" class="${state.view===n?'active':''}" data-view="${n}">${title(n)}</a>
       `).join('')}
