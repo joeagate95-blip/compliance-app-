@@ -4,207 +4,112 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Landlord Compliance Hub</title>
-
 <style>
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f4f8fc;
-  color:#0b1f3a;
-}
-
-header{
-  background:#0b4f9c;
-  color:white;
-  padding:22px 8%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.logo{
-  font-size:26px;
-  font-weight:bold;
-}
-
-nav a{
-  color:white;
-  margin-left:24px;
-  text-decoration:none;
-  font-weight:bold;
-}
-
-.btn{
-  background:#ff5a3d;
-  color:white;
-  padding:13px 22px;
-  border-radius:8px;
-  text-decoration:none;
-  font-weight:bold;
-}
-
-.hero{
-  background:linear-gradient(135deg,#0b4f9c,#08305f);
-  color:white;
-  text-align:center;
-  padding:90px 8%;
-}
-
-.hero h1{
-  font-size:56px;
-  margin:0 0 20px;
-}
-
-.hero h2{
-  font-size:34px;
-  margin:0 0 18px;
-}
-
-.hero p{
-  font-size:21px;
-  max-width:760px;
-  margin:0 auto 34px;
-  line-height:1.5;
-}
-
-.hero .actions a{
-  margin:8px;
-  display:inline-block;
-}
-
-.secondary{
-  border:2px solid white;
-  color:white;
-  padding:12px 22px;
-  border-radius:8px;
-  text-decoration:none;
-  font-weight:bold;
-}
-
-.section{
-  padding:70px 8%;
-}
-
-.section h2{
-  text-align:center;
-  font-size:38px;
-  margin-bottom:40px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:24px;
-}
-
-.card{
-  background:white;
-  padding:28px;
-  border-radius:14px;
-  box-shadow:0 4px 18px rgba(0,0,0,.08);
-}
-
-.card h3{
-  margin-top:0;
-  color:#0b4f9c;
-}
-
-.tick{
-  color:#0b4f9c;
-  font-weight:bold;
-}
-
-.cta{
-  background:#0b4f9c;
-  color:white;
-  text-align:center;
-  padding:70px 8%;
-}
-
-footer{
-  padding:24px 8%;
-  text-align:center;
-  color:#607089;
-}
+body{margin:0;font-family:Arial,sans-serif;background:#f7fafc;color:#102033}
+header{background:white;padding:22px 8%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5edf5}
+.logo{font-size:25px;font-weight:bold;color:#12355b}
+nav a{margin-left:24px;text-decoration:none;color:#12355b;font-weight:bold}
+.btn{background:#1f8f6a;color:white;padding:13px 22px;border-radius:8px;text-decoration:none;font-weight:bold}
+.btn2{border:2px solid #12355b;color:#12355b;padding:11px 22px;border-radius:8px;text-decoration:none;font-weight:bold}
+.hero{padding:80px 8%;display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
+.hero h1{font-size:56px;line-height:1.05;margin:0 0 22px;color:#12355b}
+.hero p{font-size:21px;line-height:1.55;color:#516173}
+.actions a{display:inline-block;margin-right:12px;margin-top:14px}
+.mock{background:white;border-radius:18px;padding:28px;box-shadow:0 10px 35px rgba(16,32,51,.12)}
+.score{font-size:48px;color:#1f8f6a;font-weight:bold}
+.row{display:flex;justify-content:space-between;border-bottom:1px solid #edf2f7;padding:13px 0}
+.good{color:#1f8f6a;font-weight:bold}.warn{color:#d9822b;font-weight:bold}
+.section{padding:70px 8%}.section h2{text-align:center;font-size:38px;color:#12355b}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
+.card{background:white;padding:28px;border-radius:14px;box-shadow:0 4px 20px rgba(16,32,51,.08)}
+.card h3{color:#12355b;margin-top:0}
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+ul{line-height:2;font-size:18px}
+.cta{background:#12355b;color:white;text-align:center;padding:70px 8%}
+.cta h2{font-size:38px}
+footer{text-align:center;padding:25px;color:#66788a}
+@media(max-width:800px){.hero,.feature{grid-template-columns:1fr}.hero h1{font-size:42px}nav{display:none}}
 </style>
 </head>
-
 <body>
 
 <header>
   <div class="logo">Landlord Compliance Hub</div>
   <nav>
     <a href="#features">Features</a>
-    <a href="#how">How It Works</a>
+    <a href="#how">How it works</a>
     <a href="/">Login</a>
     <a class="btn" href="/">Start Free Trial</a>
   </nav>
 </header>
 
 <section class="hero">
-  <h1>Landlord Compliance Hub</h1>
-  <h2>Compliance made easy.</h2>
+  <div>
+    <h1>Compliance made easy for landlords.</h1>
+    <p>All your documents in one place, automatic expiry reminders and everything you need to keep your properties compliant.</p>
+    <div class="actions">
+      <a class="btn" href="/">Start Free Trial</a>
+      <a class="btn2" href="/">Login</a>
+    </div>
+  </div>
 
-  <p>
-    All your documents in one place, automatic expiry reminders and everything you need to keep your properties compliant.
-  </p>
-
-  <div class="actions">
-    <a class="btn" href="/">Start Free Trial</a>
-    <a class="secondary" href="/">Login</a>
+  <div class="mock">
+    <p><b>Portfolio Compliance Score</b></p>
+    <div class="score">92%</div>
+    <div class="row"><span>Gas Safety</span><span class="good">Valid</span></div>
+    <div class="row"><span>EICR</span><span class="good">Valid</span></div>
+    <div class="row"><span>EPC</span><span class="good">Valid</span></div>
+    <div class="row"><span>PAT Testing</span><span class="warn">Due Soon</span></div>
+    <div class="row"><span>Tenant Documents</span><span class="good">Stored</span></div>
   </div>
 </section>
 
 <section class="section" id="features">
-  <h2>Everything landlords need to stay organised</h2>
-
+  <h2>Built to make compliance easier</h2>
   <div class="grid">
-    <div class="card">
-      <h3>Never miss an expiry date</h3>
-      <p>Track Gas Safety, EICR, EPC, PAT testing and other compliance dates in one simple dashboard.</p>
-    </div>
-
-    <div class="card">
-      <h3>All documents in one place</h3>
-      <p>Store certificates, tenancy documents, inventories, Right to Rent checks and prescribed information securely.</p>
-    </div>
-
-    <div class="card">
-      <h3>Contractor Centre</h3>
-      <p>Send job links to contractors, receive uploaded certificates and reduce back-and-forth admin.</p>
-    </div>
-
-    <div class="card">
-      <h3>Tenant documentation</h3>
-      <p>Keep ASTs, deposit protection documents and tenant paperwork organised by property.</p>
-    </div>
+    <div class="card"><h3>All documents in one place</h3><p>Store certificates, tenancy documents, inventories and compliance records securely by property.</p></div>
+    <div class="card"><h3>Never miss an expiry date</h3><p>Track what is valid, due soon or expired before it becomes a problem.</p></div>
+    <div class="card"><h3>Contractor Centre</h3><p>Send job links, request quotes and receive certificates directly from contractors.</p></div>
+    <div class="card"><h3>Tenant paperwork organised</h3><p>Keep ASTs, deposit protection, Right to Rent checks and prescribed information together.</p></div>
   </div>
 </section>
 
 <section class="section" id="how">
-  <h2>How it works</h2>
-
-  <div class="grid">
-    <div class="card">
-      <h3>1. Add your properties</h3>
-      <p>Create a simple portfolio and manage each property's compliance from one place.</p>
+  <div class="feature">
+    <div>
+      <h2 style="text-align:left">Everything your portfolio needs</h2>
+      <ul>
+        <li>Gas Safety Certificates</li>
+        <li>EICRs and electrical records</li>
+        <li>EPCs and PAT testing</li>
+        <li>Tenant contracts and documents</li>
+        <li>Property condition reviews</li>
+        <li>Contractor job tracking</li>
+        <li>Maintenance reports</li>
+      </ul>
     </div>
-
     <div class="card">
-      <h3>2. Upload documents</h3>
-      <p>Add certificates, contracts and key documents to the correct property folder.</p>
-    </div>
-
-    <div class="card">
-      <h3>3. Track expiry dates</h3>
-      <p>See what is valid, due soon or expired before it becomes a problem.</p>
+      <h3>Simple workflow</h3>
+      <p><b>1.</b> Add your properties</p>
+      <p><b>2.</b> Upload or request documents</p>
+      <p><b>3.</b> Track expiry dates automatically</p>
+      <p><b>4.</b> Stay organised and in control</p>
     </div>
   </div>
 </section>
 
+<section class="section">
+  <h2>Less paperwork. More control.</h2>
+  <div class="grid">
+    <div class="card"><h3>Save time</h3><p>Reduce admin and stop searching through emails, folders and spreadsheets.</p></div>
+    <div class="card"><h3>Stay compliant</h3><p>See exactly what needs attention across your properties.</p></div>
+    <div class="card"><h3>Work better with contractors</h3><p>Let contractors upload completed certificates directly to the correct property folder.</p></div>
+  </div>
+</section>
+
 <section class="cta">
-  <h2>Make landlord compliance easier today.</h2>
-  <p>Keep everything organised, reduce admin and stay in control.</p>
+  <h2>Ready to simplify landlord compliance?</h2>
+  <p>Keep everything organised, reduce admin and never miss an expiry date again.</p>
   <br>
   <a class="btn" href="/">Start Free Trial</a>
 </section>
