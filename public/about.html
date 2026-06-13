@@ -7,340 +7,433 @@
 <title>About Us | Landlord Compliance Hub</title>
 
 <style>
-
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
 body{
-    font-family:Arial, Helvetica, sans-serif;
-    background:#f5f8fc;
-    color:#16304f;
-    line-height:1.6;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f5f8fc;
+  color:#16304f;
+  line-height:1.6;
 }
 
 header{
-    background:#163b67;
-    color:white;
-    padding:20px 8%;
+  background:white;
+  padding:20px 8%;
+  border-bottom:1px solid #e5edf5;
 }
 
 .nav{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
 .logo{
-    font-size:28px;
-    font-weight:bold;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:24px;
+  font-weight:bold;
+  color:#12355b;
+}
+
+.logo-mark{
+  background:#1f8f6a;
+  color:white;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
 }
 
 .nav-links a{
-    color:white;
-    text-decoration:none;
-    margin-left:25px;
+  color:#12355b;
+  text-decoration:none;
+  margin-left:25px;
+  font-weight:bold;
+}
+
+.btn{
+  background:#1f8f6a;
+  color:white!important;
+  padding:12px 20px;
+  border-radius:8px;
+  text-decoration:none;
 }
 
 .hero{
-    background:linear-gradient(135deg,#163b67,#0e5ca8);
-    color:white;
-    text-align:center;
-    padding:90px 20px;
+  background:linear-gradient(135deg,#f7fafc,#eef5fb);
+  text-align:center;
+  padding:90px 20px;
+}
+
+.badge{
+  display:inline-block;
+  background:#e6f6ef;
+  color:#1f8f6a;
+  padding:8px 14px;
+  border-radius:999px;
+  font-weight:bold;
+  margin-bottom:20px;
 }
 
 .hero h1{
-    font-size:52px;
-    margin-bottom:20px;
+  font-size:52px;
+  margin-bottom:20px;
+  color:#12355b;
 }
 
 .hero p{
-    font-size:22px;
-    max-width:800px;
-    margin:auto;
+  font-size:22px;
+  max-width:850px;
+  margin:auto;
+  color:#516173;
 }
 
 .container{
-    max-width:1200px;
-    margin:auto;
-    padding:70px 20px;
+  max-width:1200px;
+  margin:auto;
+  padding:70px 20px;
 }
 
 .card{
-    background:white;
-    border-radius:16px;
-    padding:35px;
-    margin-bottom:35px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.08);
+  background:white;
+  border-radius:16px;
+  padding:35px;
+  margin-bottom:35px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.08);
 }
 
 .card h2{
-    color:#163b67;
-    margin-bottom:20px;
+  color:#12355b;
+  margin-bottom:20px;
 }
 
 .card p{
-    margin-bottom:18px;
+  margin-bottom:18px;
+  font-size:17px;
 }
 
 .highlight{
-    background:#eef7ff;
-    border-left:5px solid #0e5ca8;
-    padding:20px;
-    margin-top:20px;
-    border-radius:8px;
+  background:#eef7ff;
+  border-left:5px solid #1f8f6a;
+  padding:20px;
+  margin-top:20px;
+  border-radius:8px;
+  font-weight:bold;
 }
 
 .section-title{
-    text-align:center;
-    margin-bottom:40px;
+  text-align:center;
+  margin:55px 0 40px;
 }
 
 .section-title h2{
-    font-size:42px;
-    color:#163b67;
+  font-size:42px;
+  color:#12355b;
+}
+
+.section-title p{
+  color:#516173;
+  font-size:18px;
+  margin-top:10px;
 }
 
 .screenshot-card{
-    background:white;
-    padding:25px;
-    border-radius:16px;
-    margin-bottom:40px;
-    box-shadow:0 4px 20px rgba(0,0,0,.08);
+  background:white;
+  padding:26px;
+  border-radius:18px;
+  margin-bottom:45px;
+  box-shadow:0 4px 20px rgba(0,0,0,.08);
 }
 
 .screenshot-card img{
-    width:100%;
-    border-radius:12px;
-    border:1px solid #dbe5ef;
-    margin-bottom:20px;
+  width:100%;
+  border-radius:14px;
+  border:1px solid #dbe5ef;
+  margin-bottom:24px;
+  display:block;
 }
 
 .screenshot-card h3{
-    color:#163b67;
-    margin-bottom:10px;
+  color:#12355b;
+  margin-bottom:12px;
+  font-size:26px;
+}
+
+.screenshot-card p{
+  font-size:17px;
+  color:#516173;
+  margin-bottom:14px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:24px;
+}
+
+.icon-card{
+  background:#f7fafc;
+  padding:24px;
+  border-radius:14px;
+  border:1px solid #e5edf5;
+}
+
+.icon{
+  font-size:32px;
+  margin-bottom:12px;
+}
+
+.icon-card h3{
+  color:#12355b;
+  margin-bottom:10px;
 }
 
 .cta{
-    text-align:center;
-    background:#163b67;
-    color:white;
-    padding:60px 20px;
-    border-radius:20px;
+  text-align:center;
+  background:#12355b;
+  color:white;
+  padding:65px 20px;
+  border-radius:20px;
+  margin-top:50px;
 }
 
 .cta h2{
-    margin-bottom:15px;
+  margin-bottom:15px;
+  font-size:36px;
+}
+
+.cta p{
+  color:#dbe7f5;
 }
 
 .cta a{
-    display:inline-block;
-    margin-top:20px;
-    background:white;
-    color:#163b67;
-    text-decoration:none;
-    padding:14px 28px;
-    border-radius:8px;
-    font-weight:bold;
+  display:inline-block;
+  margin-top:24px;
+  background:#1f8f6a;
+  color:white;
+  text-decoration:none;
+  padding:14px 28px;
+  border-radius:8px;
+  font-weight:bold;
 }
 
 footer{
-    text-align:center;
-    padding:30px;
-    color:#666;
+  text-align:center;
+  padding:30px;
+  color:#66788a;
+  background:white;
 }
 
+@media(max-width:800px){
+  .hero h1{
+    font-size:38px;
+  }
+
+  .nav{
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .nav-links a{
+    margin:0 10px;
+  }
+}
 </style>
 </head>
 
 <body>
 
 <header>
+  <div class="nav">
+    <div class="logo">
+      <div class="logo-mark">✓</div>
+      Landlord Compliance Hub
+    </div>
 
-<div class="nav">
-
-<div class="logo">
-Landlord Compliance Hub
-</div>
-
-<div class="nav-links">
-<a href="home.html">Home</a>
-<a href="about.html">About Us</a>
-<a href="/">Login</a>
-</div>
-
-</div>
-
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="about.html">About Us</a>
+      <a href="/">Login</a>
+      <a class="btn" href="/">Start Free Trial</a>
+    </div>
+  </div>
 </header>
 
 <section class="hero">
+  <div class="badge">Built from real landlord compliance experience</div>
 
-<h1>Built From Over 10 Years Working With Landlords</h1>
+  <h1>Built From Over 10 Years Working With Landlords</h1>
 
-<p>
-Designed by somebody who understands the challenges landlords face every day.
-Keeping properties compliant should be simple, organised and stress free.
-</p>
-
+  <p>
+    Designed by someone who understands the everyday challenges of property compliance,
+    contractor communication and keeping rental documents organised.
+  </p>
 </section>
 
 <div class="container">
 
-<div class="card">
+  <div class="card">
+    <h2>Why We Built Landlord Compliance Hub</h2>
 
-<h2>Why We Built Landlord Compliance Hub</h2>
+    <p>
+      For over 10 years I have operated my own business within the gas industry,
+      working closely with landlords, letting agents and property managers across
+      the rental sector.
+    </p>
 
-<p>
-For over 10 years I have operated my own business within the gas industry,
-working closely with landlords, letting agents and property managers across
-the rental sector.
-</p>
+    <p>
+      Throughout that time I repeatedly saw the same problems: documents stored in
+      different locations, certificates expiring unexpectedly, contractor details being
+      lost and jobs being forgotten because of poor communication.
+    </p>
 
-<p>
-Throughout that time I repeatedly saw the same problems:
-documents stored in different locations, certificates expiring unexpectedly,
-contractor details being lost and jobs being forgotten because of poor communication.
-</p>
+    <p>
+      Landlord Compliance Hub was built to solve those problems. Whether you own a
+      single rental property or manage a large portfolio, the platform gives you one
+      place to manage your compliance.
+    </p>
 
-<p>
-Landlord Compliance Hub was built to solve those problems.
-Whether you own a single rental property or manage a large portfolio,
-the platform gives you one place to manage your compliance.
-</p>
+    <div class="highlight">
+      Store documents. Track expiry dates. Manage contractors. Stay organised and never miss a compliance deadline again.
+    </div>
+  </div>
 
-<div class="highlight">
-Store documents. Track expiry dates. Manage contractors.
-Stay organised and never miss a compliance deadline again.
-</div>
+  <div class="section-title">
+    <h2>See The Platform In Action</h2>
+    <p>Simple dashboards, clear document storage and property-specific compliance pages.</p>
+  </div>
 
-</div>
+  <div class="screenshot-card">
+    <img src="/images/dashboard.png" alt="Dashboard overview screenshot">
 
-<div class="section-title">
+    <h3>Dashboard Overview</h3>
 
-<h2>See The Platform In Action</h2>
+    <p>
+      Instantly see the status of your portfolio from one simple dashboard. Track property numbers,
+      uploaded certificates, upcoming expiry dates and expired documents at a glance.
+    </p>
 
-</div>
+    <p>
+      No more searching through folders, emails or spreadsheets to find the information you need.
+    </p>
+  </div>
 
-<div class="screenshot-card">
+  <div class="screenshot-card">
+    <img src="/images/compliance-centre.png" alt="Property compliance centre screenshot">
 
-<img src="images/dashboard.png">
+    <h3>Property Compliance Centre</h3>
 
-<h3>Dashboard Overview</h3>
+    <p>
+      Each property has its own dedicated compliance page. Quickly view Gas Safety Certificates,
+      EICRs, EPCs, PAT Testing records, Legionella assessments, Fire Safety documents and Tenant Contracts.
+    </p>
 
-<p>
-Instantly see the status of your portfolio from one simple dashboard.
-Track property numbers, uploaded certificates, upcoming expiry dates and expired documents at a glance.
-</p>
+    <p>
+      Everything is organised in one location and available whenever you need it.
+    </p>
+  </div>
 
-<p>
-No more searching through folders, emails or spreadsheets to find the information you need.
-</p>
+  <div class="card">
+    <h2>Making Communication Easier</h2>
 
-</div>
+    <p>
+      One of the biggest frustrations for landlords is organising contractors and keeping
+      track of ongoing work.
+    </p>
 
-<div class="screenshot-card">
+    <p>
+      Jobs can easily be delayed because messages are missed, emails get buried or nobody
+      is quite sure whether the contractor has actually booked the work.
+    </p>
 
-<img src="images/compliance-centre.png">
+    <p>
+      The Contractor Centre was designed to simplify this process. Request work, monitor
+      progress, upload certificates and track completion without endless emails and phone calls.
+    </p>
 
-<h3>Property Compliance Centre</h3>
+    <div class="highlight">
+      Ever found a brilliant contractor and then been unable to find their number six months later?
+      Store all your trusted contractors in one place and access them whenever you need them.
+    </div>
+  </div>
 
-<p>
-Each property has its own dedicated compliance page.
-Quickly view Gas Safety Certificates, EICRs, EPCs, PAT Testing records,
-Legionella assessments, Fire Safety documents and Tenant Contracts.
-</p>
+  <div class="grid">
+    <div class="icon-card">
+      <div class="icon">📄</div>
+      <h3>Document Control</h3>
+      <p>Keep certificates, tenancy documents and property records organised by property.</p>
+    </div>
 
-<p>
-Everything is organised in one location and available whenever you need it.
-</p>
+    <div class="icon-card">
+      <div class="icon">⏰</div>
+      <h3>Expiry Tracking</h3>
+      <p>See what is valid, due soon or expired before a certificate becomes a problem.</p>
+    </div>
 
-</div>
+    <div class="icon-card">
+      <div class="icon">🔧</div>
+      <h3>Contractor Centre</h3>
+      <p>Request work, share job links and receive completed certificates from contractors.</p>
+    </div>
+  </div>
 
-<div class="card">
+  <div class="card">
+    <h2>Trusted Contractor Network</h2>
 
-<h2>Making Communication Easier</h2>
+    <p>
+      Don't have a contractor for a particular trade? We can help.
+    </p>
 
-<p>
-One of the biggest frustrations for landlords is organising contractors
-and keeping track of ongoing work.
-</p>
+    <p>
+      We are building a network of trusted contractors throughout North West England and
+      can help connect landlords with reliable professionals.
+    </p>
 
-<p>
-Jobs can easily be delayed because messages are missed,
-emails get buried or nobody is quite sure whether the contractor has actually booked the work.
-</p>
+    <p>
+      This service will continue to expand into additional regions as the platform grows.
+    </p>
+  </div>
 
-<p>
-The Contractor Centre was designed to simplify this process.
-Request work, monitor progress, upload certificates and track completion without endless emails and phone calls.
-</p>
+  <div class="card">
+    <h2>Helping You Stay Compliant</h2>
 
-<div class="highlight">
-Ever found a brilliant contractor and then been unable to find their number six months later?
-Store all your trusted contractors in one place and access them whenever you need them.
-</div>
+    <p>
+      With regulations constantly evolving, keeping on top of compliance has never been more important.
+    </p>
 
-</div>
+    <p>
+      Landlord Compliance Hub stores your certificates securely, tracks expiry dates and reminds
+      you when documents are approaching renewal.
+    </p>
 
-<div class="card">
+    <p>
+      The result is less paperwork, fewer missed deadlines and complete visibility across your portfolio.
+    </p>
+  </div>
 
-<h2>Trusted Contractor Network</h2>
+  <div class="cta">
+    <h2>Ready To Simplify Your Compliance?</h2>
 
-<p>
-Don't have a contractor for a particular trade?
-We can help.
-</p>
+    <p>
+      Move away from spreadsheets, email chains and paper folders.
+    </p>
 
-<p>
-We are building a network of trusted contractors throughout North West England
-and can help connect landlords with reliable professionals.
-</p>
-
-<p>
-This service will continue to expand into additional regions as the platform grows.
-</p>
-
-</div>
-
-<div class="card">
-
-<h2>Helping You Stay Compliant</h2>
-
-<p>
-With regulations constantly evolving, keeping on top of compliance has never been more important.
-</p>
-
-<p>
-Landlord Compliance Hub stores your certificates securely,
-tracks expiry dates and reminds you when documents are approaching renewal.
-</p>
-
-<p>
-The result is less paperwork, fewer missed deadlines and complete visibility across your portfolio.
-</p>
-
-</div>
-
-<div class="cta">
-
-<h2>Ready To Simplify Your Compliance?</h2>
-
-<p>
-Join landlords who are moving away from spreadsheets, email chains and paper folders.
-</p>
-
-<a href="/">Start Free Trial</a>
-
-</div>
+    <a href="/">Start Free Trial</a>
+  </div>
 
 </div>
 
 <footer>
-
-© 2026 Landlord Compliance Hub
-
+  © 2026 Landlord Compliance Hub
 </footer>
 
 </body>
