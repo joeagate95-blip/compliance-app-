@@ -6,269 +6,54 @@
 <title>Landlord Compliance Hub</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f7fafc;
-  color:#102033;
-}
-
-header{
-  background:white;
-  padding:22px 8%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom:1px solid #e5edf5;
-  position:sticky;
-  top:0;
-  z-index:10;
-}
-
-.logo{
-  font-size:25px;
-  font-weight:bold;
-  color:#12355b;
-}
-
-nav a{
-  margin-left:24px;
-  text-decoration:none;
-  color:#12355b;
-  font-weight:bold;
-}
-
-.btn{
-  background:#1f8f6a;
-  color:white;
-  padding:13px 22px;
-  border-radius:8px;
-  text-decoration:none;
-  font-weight:bold;
-  display:inline-block;
-}
-
-.btn2{
-  border:2px solid #12355b;
-  color:#12355b;
-  padding:11px 22px;
-  border-radius:8px;
-  text-decoration:none;
-  font-weight:bold;
-  display:inline-block;
-}
-
-.hero{
-  padding:85px 8%;
-  display:grid;
-  grid-template-columns:1.1fr .9fr;
-  gap:50px;
-  align-items:center;
-  background:#f7fafc;
-}
-
-.hero h1{
-  font-size:56px;
-  line-height:1.05;
-  margin:0 0 22px;
-  color:#12355b;
-}
-
-.hero p{
-  font-size:21px;
-  line-height:1.55;
-  color:#516173;
-}
-
-.actions a{
-  margin-right:12px;
-  margin-top:14px;
-}
-
-.mock{
-  background:white;
-  border-radius:18px;
-  padding:28px;
-  box-shadow:0 10px 35px rgba(16,32,51,.12);
-  border:1px solid #e5edf5;
-}
-
-.score{
-  font-size:48px;
-  color:#1f8f6a;
-  font-weight:bold;
-}
-
-.row{
-  display:flex;
-  justify-content:space-between;
-  border-bottom:1px solid #edf2f7;
-  padding:13px 0;
-}
-
-.good{
-  color:#1f8f6a;
-  font-weight:bold;
-}
-
-.warn{
-  color:#d9822b;
-  font-weight:bold;
-}
-
-.section{
-  padding:75px 8%;
-}
-
-.section h2{
-  text-align:center;
-  font-size:38px;
-  color:#12355b;
-  margin-bottom:40px;
-}
-
-.blue-section{
-  background:#eef5fb;
-}
-
-.green-section{
-  background:#f2f8f5;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:24px;
-}
-
-.card{
-  background:white;
-  padding:28px;
-  border-radius:14px;
-  box-shadow:0 4px 20px rgba(16,32,51,.08);
-  transition:.25s;
-}
-
-.card:hover{
-  transform:translateY(-3px);
-}
-
-.card h3{
-  color:#12355b;
-  margin-top:0;
-}
-
-.feature{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:40px;
-  align-items:center;
-}
-
-ul{
-  line-height:2;
-  font-size:18px;
-}
-
-.cta{
-  background:#12355b;
-  color:white;
-  text-align:center;
-  padding:70px 8%;
-}
-
-.cta h2{
-  font-size:38px;
-}
-
-footer{
-  text-align:center;
-  padding:25px;
-  color:#66788a;
-  background:white;
-}
-
-.chat-button{
-  position:fixed;
-  right:24px;
-  bottom:24px;
-  background:#1f8f6a;
-  color:white;
-  border:none;
-  padding:15px 22px;
-  border-radius:999px;
-  font-weight:bold;
-  box-shadow:0 8px 24px rgba(0,0,0,.18);
-  cursor:pointer;
-  z-index:20;
-}
-
-.chat-box{
-  display:none;
-  position:fixed;
-  right:24px;
-  bottom:88px;
-  width:320px;
-  background:white;
-  border-radius:16px;
-  box-shadow:0 10px 35px rgba(0,0,0,.22);
-  padding:22px;
-  z-index:30;
-  border:1px solid #e5edf5;
-}
-
-.chat-box h3{
-  margin-top:0;
-  color:#12355b;
-}
-
-.chat-box input,
-.chat-box textarea{
-  width:100%;
-  padding:11px;
-  margin-bottom:10px;
-  border:1px solid #d8e2ec;
-  border-radius:8px;
-  box-sizing:border-box;
-}
-
-.chat-box textarea{
-  min-height:90px;
-}
-
-.close-chat{
-  float:right;
-  cursor:pointer;
-  color:#66788a;
-  font-weight:bold;
-}
-
-@media(max-width:800px){
-  .hero,.feature{
-    grid-template-columns:1fr;
-  }
-
-  .hero h1{
-    font-size:42px;
-  }
-
-  nav{
-    display:none;
-  }
-
-  .chat-box{
-    left:18px;
-    right:18px;
-    width:auto;
-  }
-}
+body{margin:0;font-family:Arial,sans-serif;background:#f7fafc;color:#102033}
+header{background:white;padding:20px 8%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5edf5;position:sticky;top:0;z-index:10}
+.logo{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:bold;color:#12355b}
+.logo-mark{background:#1f8f6a;color:white;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+nav a{margin-left:22px;text-decoration:none;color:#12355b;font-weight:bold}
+.btn{background:#1f8f6a;color:white;padding:13px 22px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block}
+.btn2{border:2px solid #12355b;color:#12355b;padding:11px 22px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block}
+.hero{padding:85px 8%;display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
+.badge{display:inline-block;background:#e6f6ef;color:#1f8f6a;padding:8px 14px;border-radius:999px;font-weight:bold;margin-bottom:20px}
+.hero h1{font-size:56px;line-height:1.05;margin:0 0 22px;color:#12355b}
+.hero p{font-size:21px;line-height:1.55;color:#516173}
+.actions a{margin-right:12px;margin-top:14px}
+.trust{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;color:#516173}
+.trust span{background:white;border:1px solid #e5edf5;border-radius:999px;padding:9px 13px}
+.mock{background:white;border-radius:20px;padding:28px;box-shadow:0 10px 35px rgba(16,32,51,.12);border:1px solid #e5edf5}
+.score{font-size:48px;color:#1f8f6a;font-weight:bold}
+.row{display:flex;justify-content:space-between;border-bottom:1px solid #edf2f7;padding:13px 0}
+.good{color:#1f8f6a;font-weight:bold}.warn{color:#d9822b;font-weight:bold}
+.section{padding:75px 8%}
+.section h2{text-align:center;font-size:38px;color:#12355b;margin-bottom:14px}
+.section-intro{text-align:center;color:#516173;font-size:18px;margin-bottom:40px}
+.blue-section{background:#eef5fb}.green-section{background:#f2f8f5}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px}
+.card{background:white;padding:28px;border-radius:16px;box-shadow:0 4px 20px rgba(16,32,51,.08);transition:.25s}
+.card:hover{transform:translateY(-3px)}
+.icon{font-size:34px;margin-bottom:14px}
+.card h3{color:#12355b;margin-top:0}
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.checklist{background:white;padding:30px;border-radius:18px;box-shadow:0 4px 20px rgba(16,32,51,.08)}
+.check{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #edf2f7;font-size:18px}
+.check:last-child{border-bottom:none}
+.tick{background:#1f8f6a;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.cta{background:#12355b;color:white;text-align:center;padding:75px 8%}
+.cta h2{font-size:38px}
+footer{text-align:center;padding:25px;color:#66788a;background:white}
+.chat-button{position:fixed;right:24px;bottom:24px;background:#1f8f6a;color:white;border:none;padding:15px 22px;border-radius:999px;font-weight:bold;box-shadow:0 8px 24px rgba(0,0,0,.18);cursor:pointer;z-index:20}
+.chat-box{display:none;position:fixed;right:24px;bottom:88px;width:320px;background:white;border-radius:16px;box-shadow:0 10px 35px rgba(0,0,0,.22);padding:22px;z-index:30;border:1px solid #e5edf5}
+.chat-box input,.chat-box textarea{width:100%;padding:11px;margin-bottom:10px;border:1px solid #d8e2ec;border-radius:8px;box-sizing:border-box}
+.chat-box textarea{min-height:90px}
+.close-chat{float:right;cursor:pointer;color:#66788a;font-weight:bold}
+@media(max-width:800px){.hero,.feature{grid-template-columns:1fr}.hero h1{font-size:42px}nav{display:none}.chat-box{left:18px;right:18px;width:auto}}
 </style>
 </head>
 
 <body>
 
 <header>
-  <div class="logo">Landlord Compliance Hub</div>
+  <div class="logo"><div class="logo-mark">✓</div>Landlord Compliance Hub</div>
   <nav>
     <a href="#features">Features</a>
     <a href="#how">How it works</a>
@@ -280,13 +65,17 @@ footer{
 
 <section class="hero">
   <div>
+    <div class="badge">Built for landlords and letting agents</div>
     <h1>Compliance made easy for landlords.</h1>
-    <p>
-      All your documents in one place, automatic expiry reminders and everything you need to keep your properties compliant.
-    </p>
+    <p>All your documents in one place, automatic expiry reminders and everything you need to keep your properties compliant.</p>
     <div class="actions">
       <a class="btn" href="/">Start Free Trial</a>
       <a class="btn2" href="/">Login</a>
+    </div>
+    <div class="trust">
+      <span>✓ Document storage</span>
+      <span>✓ Expiry tracking</span>
+      <span>✓ Contractor links</span>
     </div>
   </div>
 
@@ -303,27 +92,13 @@ footer{
 
 <section class="section blue-section" id="features">
   <h2>Built to make compliance easier</h2>
+  <p class="section-intro">Less chasing, less paperwork and fewer missed renewal dates.</p>
 
   <div class="grid">
-    <div class="card">
-      <h3>All documents in one place</h3>
-      <p>Store certificates, tenancy documents, inventories and compliance records securely by property.</p>
-    </div>
-
-    <div class="card">
-      <h3>Never miss an expiry date</h3>
-      <p>Track what is valid, due soon or expired before it becomes a problem.</p>
-    </div>
-
-    <div class="card">
-      <h3>Contractor Centre</h3>
-      <p>Send job links, request quotes and receive certificates directly from contractors.</p>
-    </div>
-
-    <div class="card">
-      <h3>Tenant paperwork organised</h3>
-      <p>Keep ASTs, deposit protection, Right to Rent checks and prescribed information together.</p>
-    </div>
+    <div class="card"><div class="icon">📄</div><h3>Documents in one place</h3><p>Store certificates, tenancy paperwork and compliance records by property.</p></div>
+    <div class="card"><div class="icon">⏰</div><h3>Expiry reminders</h3><p>See what is valid, due soon or expired before it becomes a problem.</p></div>
+    <div class="card"><div class="icon">🔧</div><h3>Contractor Centre</h3><p>Send job links, request quotes and receive certificates directly.</p></div>
+    <div class="card"><div class="icon">🏠</div><h3>Portfolio overview</h3><p>Keep every property organised from one simple dashboard.</p></div>
   </div>
 </section>
 
@@ -331,45 +106,28 @@ footer{
   <div class="feature">
     <div>
       <h2 style="text-align:left">Everything your portfolio needs</h2>
-      <ul>
-        <li>Gas Safety Certificates</li>
-        <li>EICRs and electrical records</li>
-        <li>EPCs and PAT testing</li>
-        <li>Tenant contracts and documents</li>
-        <li>Property condition reviews</li>
-        <li>Contractor job tracking</li>
-        <li>Maintenance reports</li>
-      </ul>
+      <p style="font-size:18px;color:#516173">From certificates to tenant documents, keep everything organised and easy to find.</p>
     </div>
 
-    <div class="card">
-      <h3>Simple workflow</h3>
-      <p><b>1.</b> Add your properties</p>
-      <p><b>2.</b> Upload or request documents</p>
-      <p><b>3.</b> Track expiry dates automatically</p>
-      <p><b>4.</b> Stay organised and in control</p>
+    <div class="checklist">
+      <div class="check"><span class="tick">✓</span>Gas Safety Certificates</div>
+      <div class="check"><span class="tick">✓</span>EICRs and electrical records</div>
+      <div class="check"><span class="tick">✓</span>EPCs and PAT testing</div>
+      <div class="check"><span class="tick">✓</span>Tenant contracts and documents</div>
+      <div class="check"><span class="tick">✓</span>Contractor job tracking</div>
+      <div class="check"><span class="tick">✓</span>Maintenance reports</div>
     </div>
   </div>
 </section>
 
 <section class="section green-section">
   <h2>Less paperwork. More control.</h2>
+  <p class="section-intro">Designed to make a landlord’s day-to-day compliance admin easier.</p>
 
   <div class="grid">
-    <div class="card">
-      <h3>Save time</h3>
-      <p>Reduce admin and stop searching through emails, folders and spreadsheets.</p>
-    </div>
-
-    <div class="card">
-      <h3>Stay compliant</h3>
-      <p>See exactly what needs attention across your properties.</p>
-    </div>
-
-    <div class="card">
-      <h3>Work better with contractors</h3>
-      <p>Let contractors upload completed certificates directly to the correct property folder.</p>
-    </div>
+    <div class="card"><div class="icon">⚡</div><h3>Save time</h3><p>Stop searching through emails, folders and spreadsheets.</p></div>
+    <div class="card"><div class="icon">🛡️</div><h3>Stay compliant</h3><p>Know exactly what needs attention across your properties.</p></div>
+    <div class="card"><div class="icon">📥</div><h3>Receive certificates</h3><p>Let contractors upload completed documents to the correct property folder.</p></div>
   </div>
 </section>
 
@@ -380,9 +138,7 @@ footer{
   <a class="btn" href="/">Start Free Trial</a>
 </section>
 
-<footer>
-  © Landlord Compliance Hub
-</footer>
+<footer>© Landlord Compliance Hub</footer>
 
 <button class="chat-button" onclick="openChat()">Contact us / Chat now</button>
 
@@ -390,36 +146,22 @@ footer{
   <span class="close-chat" onclick="closeChat()">×</span>
   <h3>Contact us</h3>
   <p>Send a quick message and we’ll get back to you.</p>
-
   <input id="chatName" placeholder="Your name">
   <input id="chatEmail" placeholder="Your email">
   <textarea id="chatMessage" placeholder="How can we help?"></textarea>
-
   <button class="btn" onclick="sendChat()">Send Message</button>
 </div>
 
 <script>
-function openChat(){
-  document.getElementById('chatBox').style.display='block';
-}
-
-function closeChat(){
-  document.getElementById('chatBox').style.display='none';
-}
-
+function openChat(){document.getElementById('chatBox').style.display='block'}
+function closeChat(){document.getElementById('chatBox').style.display='none'}
 function sendChat(){
   const name=document.getElementById('chatName').value;
   const email=document.getElementById('chatEmail').value;
   const message=document.getElementById('chatMessage').value;
-
-  const subject=encodeURIComponent('Website enquiry from ' + name);
-  const body=encodeURIComponent(
-    'Name: ' + name + '\n' +
-    'Email: ' + email + '\n\n' +
-    'Message:\n' + message
-  );
-
-  window.location.href='mailto:joe@example.com?subject=' + subject + '&body=' + body;
+  const subject=encodeURIComponent('Website enquiry from '+name);
+  const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\n\nMessage:\n'+message);
+  window.location.href='mailto:joe@example.com?subject='+subject+'&body='+body;
 }
 </script>
 
