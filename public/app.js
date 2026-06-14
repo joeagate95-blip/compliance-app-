@@ -19,18 +19,27 @@ function fmt(d){return d?new Date(d).toLocaleDateString('en-GB',{day:'2-digit',m
 
 function title(s){
   return ({
-    dashboard:'Dashboard',
-    properties:'Property Portfolio',
-    compliance:'Compliance Centre',
-    expiry:'Expiry Dashboard',
+  dashboard:'Dashboard',
+  properties:'Property Portfolio',
+  compliance:'Compliance Centre',
+  expiry:'Expiry Dashboard',
   documents:'All Uploaded Documents',
-tenants:'Tenant Contracts',
-contractorCentre:'Contractor Centre',
-reviews:'Property Condition Reviews',
-maintenance:'Maintenance Reports',
-admin:'Admin Dashboard',
-landlordDetails:'Landlord Details'
-  })[s]||s;
+  tenants:'Tenant Contracts',
+  contractorCentre:'Contractor Centre',
+  reviews:'Property Condition Reviews',
+  maintenance:'Maintenance Reports',
+
+  admin:'Admin Dashboard',
+  adminUsers:'All Users',
+  adminLandlords:'Landlords',
+  adminContractors:'Contractors',
+  adminProperties:'All Properties',
+  adminDocuments:'All Documents',
+  adminJobs:'Contractor Jobs',
+  adminMaintenance:'Maintenance Reports',
+
+  landlordDetails:'Landlord Details'
+})[s]||s;
 }
 
 async function init(){
@@ -84,20 +93,29 @@ function renderLogin(){
   };
 }
 
-function layout(content){
- const nav=[
-  'dashboard',
-  'properties',
-  'compliance',
-  'expiry',
-  'documents',
-  'tenants',
-  'contractorCentre',
-  'reviews',
-  'maintenance',
-   'landlordDetails',
-  'admin'
-];
+const nav = state.user.role === 'administrator'
+  ? [
+      'admin',
+      'adminUsers',
+      'adminLandlords',
+      'adminContractors',
+      'adminProperties',
+      'adminDocuments',
+      'adminJobs',
+      'adminMaintenance'
+    ]
+  : [
+      'dashboard',
+      'properties',
+      'compliance',
+      'expiry',
+      'documents',
+      'tenants',
+      'contractorCentre',
+      'reviews',
+      'maintenance',
+      'landlordDetails'
+    ];
 
   app.innerHTML=`
   <div class="shell">
@@ -142,17 +160,25 @@ function layout(content){
 
 function render(){
 const views={
-dashboard,
-properties,
-compliance,
-expiry,
-documents,
-tenants,
-contractorCentre,
-reviews,
-maintenance,
-landlordDetails,
-admin
+  dashboard,
+  properties,
+  compliance,
+  expiry,
+  documents,
+  tenants,
+  contractorCentre,
+  reviews,
+  maintenance,
+  landlordDetails,
+
+  admin,
+  adminUsers,
+  adminLandlords,
+  adminContractors,
+  adminProperties,
+  adminDocuments,
+  adminJobs,
+  adminMaintenance
 };
   layout((views[state.view]||dashboard)());
 }
