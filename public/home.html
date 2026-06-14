@@ -46,12 +46,37 @@ footer{text-align:center;padding:25px;color:#66788a;background:white}
 .chat-box input,.chat-box textarea{width:100%;padding:11px;margin-bottom:10px;border:1px solid #d8e2ec;border-radius:8px;box-sizing:border-box}
 .chat-box textarea{min-height:90px}
 .close-chat{float:right;cursor:pointer;color:#66788a;font-weight:bold}
-@media(max-width:800px){.hero,.feature{grid-template-columns:1fr}.hero h1{font-size:42px}nav{display:none}.chat-box{left:18px;right:18px;width:auto}}
 @media(max-width:800px){
-.hero,.feature-grid{grid-template-columns:1fr}
-.hero h1{font-size:42px}
-nav{display:none}
-.chat-box{left:18px;right:18px;width:auto}
+  header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:18px;
+  }
+
+  nav{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  nav a{
+    margin-left:0;
+    font-size:15px;
+  }
+
+  .hero,.feature{
+    grid-template-columns:1fr;
+  }
+
+  .hero h1{
+    font-size:42px;
+  }
+
+  .chat-box{
+    left:18px;
+    right:18px;
+    width:auto;
+  }
 }
 
 .btn-secondary{
