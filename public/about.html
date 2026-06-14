@@ -234,18 +234,27 @@ footer{
 }
 
 @media(max-width:800px){
-  .hero h1{
-    font-size:38px;
-  }
 
-  .nav{
-    flex-direction:column;
-    gap:16px;
-  }
+.hero h1{
+  font-size:38px;
+}
 
-  .nav-links a{
-    margin:0 10px;
-  }
+.nav{
+  flex-direction:column;
+  align-items:flex-start;
+  gap:16px;
+}
+
+.nav-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.nav-links a{
+  margin:0;
+}
+
 }
 </style>
 </head>
