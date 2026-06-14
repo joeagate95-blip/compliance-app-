@@ -1063,7 +1063,10 @@ function adminMaintenance(){
 function adminUserList(users, heading){
   return `
     <div class="card">
-      <h2>${heading}</h2>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+  <h2>${heading}</h2>
+  <button onclick="openCreateUserModal()">Create New User</button>
+</div>
       <table>
         <tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr>
         ${users.map(u=>`
@@ -1077,6 +1080,64 @@ function adminUserList(users, heading){
       </table>
     </div>
   `;
+}
+function openCreateUserModal(){
+  modal(`
+    <h2>Create New User</h2>
+
+    <form id="createUserForm">
+
+      <div class="field">
+        <label>Name</label>
+        <input name="name" required>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input name="email" type="email" required>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input name="password" required>
+      </div>
+
+      <div class="field">
+        <label>Role</label>
+        <select name="role">
+          <option value="landlord">Landlord</option>
+          <option value="letting_agent">Letting Agent</option>
+          <option value="contractor">Contractor</option>
+          <option value="tenant">Tenant</option>
+          <option value="administrator">Administrator</option>
+        </select>
+      </div>
+
+      <button>Create User</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+
+    </form>
+  `);
+
+  $('#createUserForm').onsubmit = async e => {
+    e.preventDefault();
+
+    await api('/api/admin/users',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(
+        Object.fromEntries(
+          new FormData(e.target)
+        )
+      )
+    });
+
+    closeModal();
+
+    await load();
+
+    render();
+  };
 }
 function openAdminUser(id){
   const user = (state.data.users || []).find(u => u.id === id);
