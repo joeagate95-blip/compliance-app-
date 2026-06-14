@@ -173,7 +173,9 @@ app.post('/api/properties', auth, (req, res) => {
     id: uuid(),
     address: req.body.address,
     type: req.body.type || '',
-    landlordId: user.id,
+landlordId: user.role === 'administrator' && req.body.landlordId
+  ? req.body.landlordId
+  : user.id,
     agentId: req.body.agentId || '',
     tenantIds: [],
     status: 'Needs Review',
