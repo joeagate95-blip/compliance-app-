@@ -43,7 +43,9 @@ app.use(session({
 }));
 
 app.use('/uploads', express.static(uploadDir));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  index: false
+}));
 app.use('/images', express.static(path.join(__dirname, 'public', 'public', 'images')));
 
 function safeUser(u) {
