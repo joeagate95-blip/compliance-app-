@@ -244,7 +244,7 @@ function propertyTable(props){
         <td><b>${p.address}</b><br><span class="muted">${p.type}</span></td>
         <td><span class="pill">${p.status}</span></td>
         <td>${fmt(p.lastConditionReview)}</td>
-        <td><button class="btn2" onclick="openAdminUser('${u.id}')">Open User</button></td>
+        <td><button class="btn2" onclick="openCompliance('${p.id}')">Open Compliance Page</button></td>
       </tr>
     `).join('')}
   </table>`;
@@ -1117,7 +1117,7 @@ function openAdminUser(id){
 
     <button class="btn2" onclick="closeModal()">Close</button>
   `);
-}lik
+}
 function admin(){
   setTimeout(loadAdminAnalytics,100);
 
