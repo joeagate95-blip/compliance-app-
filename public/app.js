@@ -1240,13 +1240,34 @@ async function loadAdminAnalytics(){
 function openAddProperty(){
   modal(`
   <h2>Add Property</h2>
-  <form id="propForm">
-    <div class="field"><input name="address" placeholder="Full address" required></div>
-    <div class="field"><input name="type" placeholder="Property type"></div>
-    <button>Save</button>
-    <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
-  </form>`);
+<form id="propForm">
 
+  ${state.user.role === 'administrator' ? `
+    <div class="field">
+      <label>Assign to Landlord/User</label>
+      <select name="landlordId" required>
+        ${(state.data.users || [])
+          .filter(u => u.role === 'landlord' || u.role === 'letting_agent')
+          .map(u => `<option value="${u.id}">${u.name} - ${u.email} (${u.role})</option>`)
+          .join('')}
+      </select>
+    </div>
+  ` : ''}
+
+  <div class="field">
+    <label>Property Address</label>
+    <input name="address" placeholder="Full address" required>
+  </div>
+
+  <div class="field">
+    <label>Property Type</label>
+    <input name="type" placeholder="e.g. 3 Bedroom Semi-Detached">
+  </div>
+
+  <button>Save</button>
+  <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+</form>
+  `);
   $('#propForm').onsubmit=async e=>{
     e.preventDefault();
     await api('/api/properties',{
