@@ -854,6 +854,60 @@ cron.schedule('0 8 * * *', () => {
     console.error(e);
   }
 });
+/* ADMIN CONTROL CENTRE */
+
+function adminOnly(req, res, next) {
+  const user = currentUser(req);
+
+  if (!user || user.role !== 'administrator') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  next();
+}
+
+app.get('/api/admin-control', auth, adminOnly, (req, res) => {
+  const db = read();
+
+  res.json({
+    users: (db.users || []).map(safeUser),
+    landlords: (db.users || []).filter(u => u.role === 'landlord').map(safeUser),
+    agents: (db.users || []).filter(u => u.role === 'letting_agent').map(safeUser),
+    contractors: db.contractors || [],
+    tenants: (db.users || []).filter(u => u.role === 'tenant').map(safeUser),
+    properties: db.properties || [],
+    documents: db.documents || [],
+    contractorJobs: db.contractorJobs || [],
+    maintenance: db.maintenance || [],
+    audit: db.audit || []
+  });
+});
+
+app.get('/api/admin-user/:id', auth, adminOnly, (req, res) => {
+  const db = read();
+
+  const user = (db.users || []).find(u => u.id === req.params.id);
+
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const properties = (db.properties || []).filter(p =>
+    p.landlordId === user.id ||
+    p.agentId === user.id ||
+    (p.tenantIds || []).includes(user.id)
+  );
+
+  const propertyIds = properties.map(p => p.id);
+
+  res.json({
+    user: safeUser(user),
+    properties,
+    documents: (db.documents || []).filter(d => propertyIds.includes(d.propertyId)),
+    contractorJobs: (db.contractorJobs || []).filter(j => propertyIds.includes(j.propertyId)),
+    maintenance: (db.maintenance || []).filter(m => propertyIds.includes(m.propertyId))
+  });
+});
 /* ADMIN ANALYTICS */
 
 app.get('/api/admin-analytics', (req, res) => {
