@@ -1071,7 +1071,7 @@ function adminUserList(users, heading){
             <td>${u.name || ''}</td>
             <td>${u.email || ''}</td>
             <td><span class="pill">${u.role || ''}</span></td>
-            <td><button class="btn2" onclick="alert('User profile editing comes next')">Open User</button></td>
+          <td><button class="btn2" onclick="openAdminUser('${u.id}')">Open User</button></td>
           </tr>
         `).join('') || '<tr><td colspan="4">No users found.</td></tr>'}
       </table>
