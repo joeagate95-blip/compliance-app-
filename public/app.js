@@ -244,7 +244,7 @@ function propertyTable(props){
         <td><b>${p.address}</b><br><span class="muted">${p.type}</span></td>
         <td><span class="pill">${p.status}</span></td>
         <td>${fmt(p.lastConditionReview)}</td>
-        <td><button class="btn2" onclick="openCompliance('${p.id}')">Open Compliance Page</button></td>
+        <td><button class="btn2" onclick="openAdminUser('${u.id}')">Open User</button></td>
       </tr>
     `).join('')}
   </table>`;
@@ -1078,6 +1078,46 @@ function adminUserList(users, heading){
     </div>
   `;
 }
+function openAdminUser(id){
+  const user = (state.data.users || []).find(u => u.id === id);
+
+  if(!user){
+    alert('User not found');
+    return;
+  }
+
+  const userProperties = (state.data.properties || []).filter(p =>
+    p.landlordId === user.id ||
+    p.agentId === user.id ||
+    (p.tenantIds || []).includes(user.id)
+  );
+
+  const propertyIds = userProperties.map(p => p.id);
+
+  const userDocuments = (state.data.documents || []).filter(d =>
+    propertyIds.includes(d.propertyId)
+  );
+
+  modal(`
+    <h2>${user.name}</h2>
+
+    <div class="card">
+      <h3>User Details</h3>
+      <p><b>Name:</b> ${user.name || ''}</p>
+      <p><b>Email:</b> ${user.email || ''}</p>
+      <p><b>Role:</b> <span class="pill">${user.role || ''}</span></p>
+      <p><b>Properties:</b> ${userProperties.length}</p>
+      <p><b>Documents:</b> ${userDocuments.length}</p>
+    </div>
+
+    <div class="card">
+      <h3>Properties</h3>
+      ${propertyTable(userProperties)}
+    </div>
+
+    <button class="btn2" onclick="closeModal()">Close</button>
+  `);
+}lik
 function admin(){
   setTimeout(loadAdminAnalytics,100);
 
