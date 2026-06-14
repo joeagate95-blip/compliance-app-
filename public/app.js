@@ -949,6 +949,135 @@ function landlordDetails(){
     </div>
   `;
 }
+function adminUsers(){
+  return adminUserList(state.data.users || [], 'All Users');
+}
+
+function adminLandlords(){
+  return adminUserList((state.data.users || []).filter(u=>u.role==='landlord'), 'Landlords');
+}
+
+function adminContractors(){
+  return `
+    <div class="card">
+      <h2>Contractors</h2>
+      <table>
+        <tr><th>Company</th><th>Trade</th><th>Email</th><th>Phone</th><th>Status</th></tr>
+        ${(state.data.contractors || []).map(c=>`
+          <tr>
+            <td>${c.company || ''}</td>
+            <td>${c.trade || ''}</td>
+            <td>${c.email || ''}</td>
+            <td>${c.phone || ''}</td>
+            <td>${c.approved ? 'Approved' : 'Not approved'}</td>
+          </tr>
+        `).join('') || '<tr><td colspan="5">No contractors found.</td></tr>'}
+      </table>
+    </div>
+  `;
+}
+
+function adminProperties(){
+  return `
+    <div class="card">
+      <h2>All Properties</h2>
+      ${propertyTable(state.data.properties || [])}
+    </div>
+  `;
+}
+
+function adminDocuments(){
+  const docs = state.data.documents || [];
+
+  return `
+    <div class="card">
+      <h2>All Documents</h2>
+      <table>
+        <tr><th>Property</th><th>Category</th><th>Title</th><th>Issue</th><th>Expiry</th><th>File</th></tr>
+        ${docs.map(d=>{
+          const p = (state.data.properties || []).find(x=>x.id===d.propertyId);
+          return `
+            <tr>
+              <td>${p?.address || ''}</td>
+              <td>${d.category || ''}</td>
+              <td>${d.title || ''}</td>
+              <td>${fmt(d.issueDate)}</td>
+              <td>${fmt(d.expiryDate)}</td>
+              <td>${d.fileName ? `<a href="/api/download/${d.fileName}">Download</a>` : 'No file'}</td>
+            </tr>
+          `;
+        }).join('') || '<tr><td colspan="6">No documents found.</td></tr>'}
+      </table>
+    </div>
+  `;
+}
+
+function adminJobs(){
+  const jobs = state.data.contractorJobs || [];
+
+  return `
+    <div class="card">
+      <h2>Contractor Jobs</h2>
+      <table>
+        <tr><th>Property</th><th>Type</th><th>Contractor</th><th>Status</th><th>Booked</th><th>Quote</th></tr>
+        ${jobs.map(j=>`
+          <tr>
+            <td>${j.propertyAddress || ''}</td>
+            <td>${j.complianceType || ''}</td>
+            <td>${j.contractorName || j.contractorEmail || ''}</td>
+            <td>${j.status || ''}</td>
+            <td>${j.bookedDate ? `${j.bookedDate} ${j.bookedTime || ''}` : 'Not booked'}</td>
+            <td>${j.quotedPrice || 'Not provided'}</td>
+          </tr>
+        `).join('') || '<tr><td colspan="6">No jobs found.</td></tr>'}
+      </table>
+    </div>
+  `;
+}
+
+function adminMaintenance(){
+  const items = state.data.maintenance || [];
+
+  return `
+    <div class="card">
+      <h2>Maintenance Reports</h2>
+      <table>
+        <tr><th>Property</th><th>Issue</th><th>Priority</th><th>Status</th><th>Created</th></tr>
+        ${items.map(m=>{
+          const p = (state.data.properties || []).find(x=>x.id===m.propertyId);
+          return `
+            <tr>
+              <td>${p?.address || ''}</td>
+              <td>${m.title || ''}</td>
+              <td>${m.priority || ''}</td>
+              <td>${m.status || ''}</td>
+              <td>${m.createdAt ? new Date(m.createdAt).toLocaleString('en-GB') : ''}</td>
+            </tr>
+          `;
+        }).join('') || '<tr><td colspan="5">No maintenance reports found.</td></tr>'}
+      </table>
+    </div>
+  `;
+}
+
+function adminUserList(users, heading){
+  return `
+    <div class="card">
+      <h2>${heading}</h2>
+      <table>
+        <tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr>
+        ${users.map(u=>`
+          <tr>
+            <td>${u.name || ''}</td>
+            <td>${u.email || ''}</td>
+            <td><span class="pill">${u.role || ''}</span></td>
+            <td><button class="btn2" onclick="alert('User profile editing comes next')">Open User</button></td>
+          </tr>
+        `).join('') || '<tr><td colspan="4">No users found.</td></tr>'}
+      </table>
+    </div>
+  `;
+}
 function admin(){
   setTimeout(loadAdminAnalytics,100);
 
