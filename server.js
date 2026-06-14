@@ -865,7 +865,51 @@ function adminOnly(req, res, next) {
 
   next();
 }
+app.post('/api/admin/users', auth, adminOnly, (req, res) => {
+  const db = read();
+  db.users = db.users || [];
 
+  const admin = currentUser(req);
+
+  const name = (req.body.name || '').trim();
+  const email = (req.body.email || '').trim().toLowerCase();
+  const password = req.body.password || '';
+  const role = req.body.role || 'landlord';
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: 'Name, email and password are required' });
+  }
+
+  if (!['landlord', 'letting_agent', 'contractor', 'tenant', 'administrator'].includes(role)) {
+    return res.status(400).json({ error: 'Invalid role' });
+  }
+
+  const existing = db.users.find(u => u.email.toLowerCase() === email);
+
+  if (existing) {
+    return res.status(400).json({ error: 'A user with this email already exists' });
+  }
+
+  const user = {
+    id: uuid(),
+    name,
+    email,
+    role,
+    passwordHash: bcrypt.hashSync(password, 10),
+    createdByAdmin: admin.id,
+    createdAt: new Date().toISOString()
+  };
+
+  db.users.push(user);
+
+  audit(db, 'Admin created user ' + email, admin);
+  write(db);
+
+  res.json({
+    success: true,
+    user: safeUser(user)
+  });
+});
 app.get('/api/admin-control', auth, adminOnly, (req, res) => {
   const db = read();
 
