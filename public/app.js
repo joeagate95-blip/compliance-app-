@@ -92,7 +92,7 @@ function renderLogin(){
     }catch(err){alert(err.message)}
   };
 }
-
+function layout(content){
 const nav = state.user.role === 'administrator'
   ? [
       'admin',
@@ -1077,39 +1077,6 @@ function adminUserList(users, heading){
       </table>
     </div>
   `;
-}
-function admin(){
-  setTimeout(loadAdminAnalytics,100);
-
-  return `
-  <div class="grid">
-    <div class="card span12">
-      <h2>Platform Analytics</h2>
-      <div id="adminAnalytics" class="grid">
-        <div class="card span3"><h2>Loading...</h2></div>
-      </div>
-    </div>
-
-    <div class="card span4">
-      <h2>Users</h2>
-      ${state.data.users.map(u=>`
-        <p><b>${u.name}</b><br>${u.email}<br><span class="pill">${u.role}</span></p>
-      `).join('')}
-    </div>
-
-    <div class="card span8">
-      <h2>All Client Folders / Properties</h2>
-      ${propertyTable(state.data.properties)}
-    </div>
-
-    <div class="card span12">
-      <h2>Audit Log</h2>
-      <button onclick="runReminders()">Run Reminder Check</button>
-      ${state.data.audit.map(a=>`
-        <p><span class="pill">${new Date(a.at).toLocaleString('en-GB')}</span> ${a.action} <span class="muted">${a.user||''}</span></p>
-      `).join('')}
-    </div>
-  </div>`;
 }
 function admin(){
   setTimeout(loadAdminAnalytics,100);
