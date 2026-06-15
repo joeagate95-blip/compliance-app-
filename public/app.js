@@ -1159,21 +1159,131 @@ function openAdminUser(id){
     propertyIds.includes(d.propertyId)
   );
 
+  const tenantContracts = userDocuments.filter(d =>
+    d.category === 'Tenant Contracts'
+  );
+
+  const userJobs = (state.data.contractorJobs || []).filter(j =>
+    propertyIds.includes(j.propertyId)
+  );
+
+  const userReviews = (state.data.reviews || []).filter(r =>
+    propertyIds.includes(r.propertyId)
+  );
+
+  const userMaintenance = (state.data.maintenance || []).filter(m =>
+    propertyIds.includes(m.propertyId)
+  );
+
   modal(`
     <h2>${user.name}</h2>
+    <p class="muted">${user.email} • ${user.role}</p>
+
+    <div class="grid">
+      <div class="card span3"><div class="metric">${userProperties.length}</div><b>Properties</b></div>
+      <div class="card span3"><div class="metric">${userDocuments.length}</div><b>Documents</b></div>
+      <div class="card span3"><div class="metric">${userJobs.length}</div><b>Contractor Jobs</b></div>
+      <div class="card span3"><div class="metric">${userMaintenance.length}</div><b>Maintenance</b></div>
+    </div>
 
     <div class="card">
       <h3>User Details</h3>
       <p><b>Name:</b> ${user.name || ''}</p>
       <p><b>Email:</b> ${user.email || ''}</p>
       <p><b>Role:</b> <span class="pill">${user.role || ''}</span></p>
-      <p><b>Properties:</b> ${userProperties.length}</p>
-      <p><b>Documents:</b> ${userDocuments.length}</p>
     </div>
 
     <div class="card">
       <h3>Properties</h3>
       ${propertyTable(userProperties)}
+    </div>
+
+    <div class="card">
+      <h3>Compliance Documents</h3>
+      <table>
+        <tr><th>Property</th><th>Category</th><th>Title</th><th>Expiry</th><th>File</th></tr>
+        ${userDocuments.map(d=>{
+          const p = state.data.properties.find(x => x.id === d.propertyId);
+          return `
+            <tr>
+              <td>${p?.address || ''}</td>
+              <td>${d.category || ''}</td>
+              <td>${d.title || ''}</td>
+              <td>${fmt(d.expiryDate)}</td>
+              <td>${d.fileName ? `<a href="/api/download/${d.fileName}" target="_blank">Download</a>` : 'No file'}</td>
+            </tr>
+          `;
+        }).join('') || '<tr><td colspan="5">No documents found.</td></tr>'}
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Tenant Contracts</h3>
+      <table>
+        <tr><th>Property</th><th>Document</th><th>Expiry</th><th>File</th></tr>
+        ${tenantContracts.map(d=>{
+          const p = state.data.properties.find(x => x.id === d.propertyId);
+          return `
+            <tr>
+              <td>${p?.address || ''}</td>
+              <td>${d.title || ''}</td>
+              <td>${fmt(d.expiryDate)}</td>
+              <td>${d.fileName ? `<a href="/api/download/${d.fileName}" target="_blank">Download</a>` : 'No file'}</td>
+            </tr>
+          `;
+        }).join('') || '<tr><td colspan="4">No tenant contracts found.</td></tr>'}
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Contractor Jobs</h3>
+      <table>
+        <tr><th>Property</th><th>Job</th><th>Status</th><th>Contractor</th></tr>
+        ${userJobs.map(j=>`
+          <tr>
+            <td>${j.propertyAddress || ''}</td>
+            <td>${j.complianceType || ''}</td>
+            <td><span class="pill">${j.status || ''}</span></td>
+            <td>${j.contractorName || j.contractorEmail || ''}</td>
+          </tr>
+        `).join('') || '<tr><td colspan="4">No contractor jobs found.</td></tr>'}
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Property Condition Reviews</h3>
+      <table>
+        <tr><th>Property</th><th>Date</th><th>Outcome</th><th>Notes</th></tr>
+        ${userReviews.map(r=>{
+          const p = state.data.properties.find(x => x.id === r.propertyId);
+          return `
+            <tr>
+              <td>${p?.address || ''}</td>
+              <td>${fmt(r.date)}</td>
+              <td>${r.outcome || ''}</td>
+              <td>${r.notes || ''}</td>
+            </tr>
+          `;
+        }).join('') || '<tr><td colspan="4">No reviews found.</td></tr>'}
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Maintenance Reports</h3>
+      <table>
+        <tr><th>Property</th><th>Issue</th><th>Priority</th><th>Status</th></tr>
+        ${userMaintenance.map(m=>{
+          const p = state.data.properties.find(x => x.id === m.propertyId);
+          return `
+            <tr>
+              <td>${p?.address || ''}</td>
+              <td>${m.title || ''}</td>
+              <td>${m.priority || ''}</td>
+              <td>${m.status || ''}</td>
+            </tr>
+          `;
+        }).join('') || '<tr><td colspan="4">No maintenance reports found.</td></tr>'}
+      </table>
     </div>
 
     <button class="btn2" onclick="closeModal()">Close</button>
