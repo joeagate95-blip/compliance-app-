@@ -1,4 +1,4 @@
-xlet state={user:null,data:null,view:'dashboard',selected:null,filter:null};
+let state={user:null,data:null,view:'dashboard',selected:null,filter:null};
 
 const $=s=>document.querySelector(s);
 const app=$('#app');
