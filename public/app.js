@@ -1176,8 +1176,13 @@ function openAdminUser(id){
   );
 
   modal(`
-    <h2>${user.name}</h2>
-    <p class="muted">${user.email} • ${user.role}</p>
+  <h2>${user.name}</h2>
+<p class="muted">${user.email} • ${user.role}</p>
+
+<p>
+  <button onclick="openAdminUploadDocument('${user.id}')">Upload Document For This User</button>
+</p>
+    
 
     <div class="grid">
       <div class="card span3"><div class="metric">${userProperties.length}</div><b>Properties</b></div>
@@ -1288,6 +1293,101 @@ function openAdminUser(id){
 
     <button class="btn2" onclick="closeModal()">Close</button>
   `);
+}
+function openAdminUploadDocument(userId){
+  const user = (state.data.users || []).find(u => u.id === userId);
+
+  if(!user){
+    alert('User not found');
+    return;
+  }
+
+  const userProperties = (state.data.properties || []).filter(p =>
+    p.landlordId === user.id ||
+    p.agentId === user.id ||
+    (p.tenantIds || []).includes(user.id)
+  );
+
+  if(userProperties.length === 0){
+    alert('This user has no properties yet. Add a property for them first.');
+    return;
+  }
+
+  const categories = [
+    'Gas Safety',
+    'Electrical',
+    'EICR',
+    'PAT Testing',
+    'EPC',
+    'Legionella',
+    'Smoke & CO Alarms',
+    'Fire Safety',
+    'Tenant Contracts'
+  ];
+
+  modal(`
+    <h2>Upload Document for ${user.name}</h2>
+
+    <form id="adminUploadDocForm" enctype="multipart/form-data">
+
+      <div class="field">
+        <label>Property</label>
+        <select name="propertyId" required>
+          ${userProperties.map(p=>`
+            <option value="${p.id}">${p.address}</option>
+          `).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Document Category</label>
+        <select name="category">
+          ${categories.map(c=>`<option>${c}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Document Title</label>
+        <input name="title" required placeholder="e.g. Gas Safety Certificate">
+      </div>
+
+      <div class="field">
+        <label>Issue Date</label>
+        <input type="date" name="issueDate">
+      </div>
+
+      <div class="field">
+        <label>Expiry Date</label>
+        <input type="date" name="expiryDate">
+      </div>
+
+      <div class="field">
+        <label>Upload File</label>
+        <input type="file" name="file">
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea name="notes"></textarea>
+      </div>
+
+      <button>Upload Document</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+    </form>
+  `);
+
+  $('#adminUploadDocForm').onsubmit = async e => {
+    e.preventDefault();
+
+    await api('/api/documents',{
+      method:'POST',
+      body:new FormData(e.target)
+    });
+
+    closeModal();
+    await load();
+    openAdminUser(userId);
+  };
 }
 function admin(){
   setTimeout(loadAdminAnalytics,100);
