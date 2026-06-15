@@ -1,4 +1,4 @@
-let state={user:null,data:null,view:'dashboard',selected:null,filter:null};
+xlet state={user:null,data:null,view:'dashboard',selected:null,filter:null};
 
 const $=s=>document.querySelector(s);
 const app=$('#app');
@@ -1206,7 +1206,7 @@ function openAdminUser(id){
     <div class="card">
       <h3>Compliance Documents</h3>
       <table>
-        <tr><th>Property</th><th>Category</th><th>Title</th><th>Expiry</th><th>File</th></tr>
+        <tr><th>Property</th><th>Category</th><th>Title</th><th>Expiry</th><th>File</th><th>Action</th></tr>
         ${userDocuments.map(d=>{
           const p = state.data.properties.find(x => x.id === d.propertyId);
           return `
@@ -1215,10 +1215,14 @@ function openAdminUser(id){
               <td>${d.category || ''}</td>
               <td>${d.title || ''}</td>
               <td>${fmt(d.expiryDate)}</td>
-              <td>${d.fileName ? `<a href="/api/download/${d.fileName}" target="_blank">Download</a>` : 'No file'}</td>
+             <td>${d.fileName ? `<a href="/api/download/${d.fileName}" target="_blank">Download</a>` : 'No file'}</td>
+<td>
+  <button class="btn2" onclick="openEditAdminDocument('${d.id}','${user.id}')">Edit</button>
+  <button class="btn2" onclick="deleteAdminDocument('${d.id}','${user.id}')">Delete</button>
+</td>
             </tr>
           `;
-        }).join('') || '<tr><td colspan="5">No documents found.</td></tr>'}
+        }).join('') || '<tr><td colspan="6">No documents found.</td></tr>'}
       </table>
     </div>
 
@@ -1388,6 +1392,90 @@ function openAdminUploadDocument(userId){
     await load();
     openAdminUser(userId);
   };
+}
+function openEditAdminDocument(docId, userId){
+  const doc = (state.data.documents || []).find(d => d.id === docId);
+
+  if(!doc){
+    alert('Document not found');
+    return;
+  }
+
+  const categories = [
+    'Gas Safety',
+    'Electrical',
+    'EICR',
+    'PAT Testing',
+    'EPC',
+    'Legionella',
+    'Smoke & CO Alarms',
+    'Fire Safety',
+    'Tenant Contracts'
+  ];
+
+  modal(`
+    <h2>Edit Document</h2>
+
+    <form id="editAdminDocForm">
+
+      <div class="field">
+        <label>Category</label>
+        <select name="category">
+          ${categories.map(c=>`
+            <option ${doc.category===c?'selected':''}>${c}</option>
+          `).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Title</label>
+        <input name="title" value="${doc.title || ''}" required>
+      </div>
+
+      <div class="field">
+        <label>Issue Date</label>
+        <input type="date" name="issueDate" value="${doc.issueDate || ''}">
+      </div>
+
+      <div class="field">
+        <label>Expiry Date</label>
+        <input type="date" name="expiryDate" value="${doc.expiryDate || ''}">
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea name="notes">${doc.notes || ''}</textarea>
+      </div>
+
+      <button>Save Changes</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+    </form>
+  `);
+
+  $('#editAdminDocForm').onsubmit = async e => {
+    e.preventDefault();
+
+    await api('/api/documents/' + docId,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.fromEntries(new FormData(e.target)))
+    });
+
+    closeModal();
+    await load();
+    openAdminUser(userId);
+  };
+}
+
+async function deleteAdminDocument(docId, userId){
+  if(!confirm('Delete this document? This cannot be undone.')) return;
+
+  await api('/api/documents/' + docId,{
+    method:'DELETE'
+  });
+
+  await load();
+  openAdminUser(userId);
 }
 function admin(){
   setTimeout(loadAdminAnalytics,100);
