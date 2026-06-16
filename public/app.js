@@ -1229,7 +1229,7 @@ function openAdminUser(id){
     <div class="card">
       <h3>Tenant Contracts</h3>
       <table>
-        <tr><th>Property</th><th>Document</th><th>Expiry</th><th>File</th></tr>
+      <tr><th>Property</th><th>Document</th><th>Expiry</th><th>File</th><th>Action</th></tr>
         ${tenantContracts.map(d=>{
           const p = state.data.properties.find(x => x.id === d.propertyId);
           return `
@@ -1237,10 +1237,16 @@ function openAdminUser(id){
               <td>${p?.address || ''}</td>
               <td>${d.title || ''}</td>
               <td>${fmt(d.expiryDate)}</td>
-              <td>${d.fileName ? `<a href="/api/download/${d.fileName}" target="_blank">Download</a>` : 'No file'}</td>
-            </tr>
+            <td>${d.fileName ? `<a href="/api/download/${d.fileName}" target="_blank">Download</a>` : 'No file'}</td>
+
+<td>
+  <button class="btn2" onclick="openEditAdminDocument('${d.id}','${user.id}')">Edit</button>
+  <button class="btn2" onclick="deleteAdminDocument('${d.id}','${user.id}')">Delete</button>
+</td>
+
+</tr>
           `;
-        }).join('') || '<tr><td colspan="4">No tenant contracts found.</td></tr>'}
+      '<tr><td colspan="5">No tenant contracts found.</td></tr>'
       </table>
     </div>
 
