@@ -1245,8 +1245,8 @@ function openAdminUser(id){
 </td>
 
 </tr>
-          `;
-      '<tr><td colspan="5">No tenant contracts found.</td></tr>'
+        `;
+}).join('') || '<tr><td colspan="5">No tenant contracts found.</td></tr>'}
       </table>
     </div>
 
@@ -1286,7 +1286,7 @@ function openAdminUser(id){
 
 </tr>
           `;
-        }).join('') || '<tr><td colspan="5">No reviews found.</td></tr>'
+        }).join('') || '<tr><td colspan="5">No reviews found.</td></tr>'}
       </table>
     </div>
 
