@@ -993,7 +993,7 @@ function adminDocuments(){
     <div class="card">
       <h2>All Documents</h2>
       <table>
-        <tr><th>Property</th><th>Category</th><th>Title</th><th>Issue</th><th>Expiry</th><th>File</th></tr>
+        <tr><th>Property</th><th>Category</th><th>Title</th><th>Issue</th><th>Expiry</th><th>File</th><th>Action</th></tr>
         ${docs.map(d=>{
           const p = (state.data.properties || []).find(x=>x.id===d.propertyId);
           return `
@@ -1004,9 +1004,13 @@ function adminDocuments(){
               <td>${fmt(d.issueDate)}</td>
               <td>${fmt(d.expiryDate)}</td>
               <td>${d.fileName ? `<a href="/api/download/${d.fileName}">Download</a>` : 'No file'}</td>
+              <td>
+  <button class="btn2" onclick="openEditAdminDocument('${d.id}','${state.user.id}')">Edit</button>
+  <button class="btn2" onclick="deleteAdminDocument('${d.id}','${state.user.id}')">Delete</button>
+</td>
             </tr>
           `;
-        }).join('') || '<tr><td colspan="6">No documents found.</td></tr>'}
+        }).join('') || '<tr><td colspan="7">No documents found.</td></tr>'}
       </table>
     </div>
   `;
