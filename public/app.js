@@ -1268,18 +1268,25 @@ function openAdminUser(id){
     <div class="card">
       <h3>Property Condition Reviews</h3>
       <table>
-        <tr><th>Property</th><th>Date</th><th>Outcome</th><th>Notes</th></tr>
+     <tr><th>Property</th><th>Date</th><th>Outcome</th><th>Notes</th><th>Action</th></tr>
         ${userReviews.map(r=>{
           const p = state.data.properties.find(x => x.id === r.propertyId);
           return `
-            <tr>
-              <td>${p?.address || ''}</td>
-              <td>${fmt(r.date)}</td>
-              <td>${r.outcome || ''}</td>
-              <td>${r.notes || ''}</td>
-            </tr>
+           <tr>
+  <td>${p?.address || ''}</td>
+  <td>${fmt(r.date)}</td>
+  <td>${r.outcome || ''}</td>
+  <td>${r.notes || ''}</td>
+
+
+  <td>
+    <button class="btn2" onclick="openEditAdminReview('${r.id}','${user.id}')">Edit</button>
+    <button class="btn2" onclick="deleteAdminReview('${r.id}','${user.id}')">Delete</button>
+  </td>
+
+</tr>
           `;
-        }).join('') || '<tr><td colspan="4">No reviews found.</td></tr>'}
+        }).join('') || '<tr><td colspan="5">No reviews found.</td></tr>'
       </table>
     </div>
 
@@ -1477,6 +1484,66 @@ async function deleteAdminDocument(docId, userId){
   if(!confirm('Delete this document? This cannot be undone.')) return;
 
   await api('/api/documents/' + docId,{
+    method:'DELETE'
+  });
+
+  await load();
+  openAdminUser(userId);
+}
+function openEditAdminReview(reviewId, userId){
+  const review = (state.data.reviews || []).find(r => r.id === reviewId);
+
+  if(!review){
+    alert('Review not found');
+    return;
+  }
+
+  modal(`
+    <h2>Edit Review</h2>
+    <form id="editReviewForm">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" name="date" value="${review.date || ''}">
+      </div>
+
+      <div class="field">
+        <label>Outcome</label>
+        <select name="outcome">
+          <option ${review.outcome==='Good Condition'?'selected':''}>Good Condition</option>
+          <option ${review.outcome==='Minor Issues Identified'?'selected':''}>Minor Issues Identified</option>
+          <option ${review.outcome==='Action Required'?'selected':''}>Action Required</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea name="notes">${review.notes || ''}</textarea>
+      </div>
+
+      <button>Save Changes</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+    </form>
+  `);
+
+  $('#editReviewForm').onsubmit = async e => {
+    e.preventDefault();
+
+    await api('/api/reviews/' + reviewId,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.fromEntries(new FormData(e.target)))
+    });
+
+    closeModal();
+    await load();
+    openAdminUser(userId);
+  };
+}
+
+async function deleteAdminReview(reviewId, userId){
+  if(!confirm('Delete this review?')) return;
+
+  await api('/api/reviews/' + reviewId,{
     method:'DELETE'
   });
 
