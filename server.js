@@ -604,6 +604,65 @@ app.post('/api/reviews', auth, upload.array('photos', 20), (req, res) => {
 
   res.json(r);
 });
+app.put('/api/reviews/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  const review = (db.reviews || []).find(r => r.id === req.params.id);
+
+  if (!review) {
+    return res.status(404).json({ error: 'Review not found' });
+  }
+
+  const property = db.properties.find(p => p.id === review.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  review.date = req.body.date || review.date;
+  review.outcome = req.body.outcome || review.outcome;
+  review.notes = req.body.notes || '';
+  review.updatedAt = new Date().toISOString();
+  review.updatedBy = user.id;
+
+  property.lastConditionReview = review.date;
+
+  audit(db, 'Updated property condition review for ' + property.address, user);
+  write(db);
+
+  res.json({
+    success: true,
+    review
+  });
+});
+
+app.delete('/api/reviews/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  const reviewIndex = (db.reviews || []).findIndex(r => r.id === req.params.id);
+
+  if (reviewIndex === -1) {
+    return res.status(404).json({ error: 'Review not found' });
+  }
+
+  const review = db.reviews[reviewIndex];
+  const property = db.properties.find(p => p.id === review.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  db.reviews.splice(reviewIndex, 1);
+
+  audit(db, 'Deleted property condition review for ' + property.address, user);
+  write(db);
+
+  res.json({
+    success: true
+  });
+});
 
 /* TENANT MAINTENANCE */
 
