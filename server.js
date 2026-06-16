@@ -722,7 +722,59 @@ app.post('/api/maintenance', auth, upload.array('photos', 12), (req, res) => {
 
   res.json(m);
 });
+app.put('/api/maintenance/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
 
+  const item = (db.maintenance || []).find(m => m.id === req.params.id);
+
+  if (!item) {
+    return res.status(404).json({ error: 'Maintenance report not found' });
+  }
+
+  const property = db.properties.find(p => p.id === item.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  item.title = req.body.title || item.title;
+  item.priority = req.body.priority || item.priority;
+  item.status = req.body.status || item.status;
+  item.notes = req.body.notes || '';
+  item.updatedAt = new Date().toISOString();
+  item.updatedBy = user.id;
+
+  audit(db, 'Updated maintenance report: ' + item.title, user);
+  write(db);
+
+  res.json({ success: true, item });
+});
+
+app.delete('/api/maintenance/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  const itemIndex = (db.maintenance || []).findIndex(m => m.id === req.params.id);
+
+  if (itemIndex === -1) {
+    return res.status(404).json({ error: 'Maintenance report not found' });
+  }
+
+  const item = db.maintenance[itemIndex];
+  const property = db.properties.find(p => p.id === item.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  db.maintenance.splice(itemIndex, 1);
+
+  audit(db, 'Deleted maintenance report: ' + item.title, user);
+  write(db);
+
+  res.json({ success: true });
+});
 app.get('/tenant-maintenance/:token', (req, res) => {
   const db = read();
   const link = findLink(db, req.params.token, 'tenant_maintenance');
