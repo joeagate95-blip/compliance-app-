@@ -1293,18 +1293,24 @@ function openAdminUser(id){
     <div class="card">
       <h3>Maintenance Reports</h3>
       <table>
-        <tr><th>Property</th><th>Issue</th><th>Priority</th><th>Status</th></tr>
+        <tr><th>Property</th><th>Issue</th><th>Priority</th><th>Status</th><th>Action</th></tr>
         ${userMaintenance.map(m=>{
           const p = state.data.properties.find(x => x.id === m.propertyId);
           return `
-            <tr>
-              <td>${p?.address || ''}</td>
-              <td>${m.title || ''}</td>
-              <td>${m.priority || ''}</td>
-              <td>${m.status || ''}</td>
-            </tr>
+           <tr>
+  <td>${p?.address || ''}</td>
+  <td>${m.title || ''}</td>
+  <td>${m.priority || ''}</td>
+  <td>${m.status || ''}</td>
+
+  <td>
+    <button class="btn2" onclick="openEditAdminMaintenance('${m.id}','${user.id}')">Edit</button>
+    <button class="btn2" onclick="deleteAdminMaintenance('${m.id}','${user.id}')">Delete</button>
+  </td>
+
+</tr>
           `;
-        }).join('') || '<tr><td colspan="4">No maintenance reports found.</td></tr>'}
+        }).join('') || '<tr><td colspan="5">No maintenance reports found.</td></tr>'}
       </table>
     </div>
 
@@ -1544,6 +1550,80 @@ async function deleteAdminReview(reviewId, userId){
   if(!confirm('Delete this review?')) return;
 
   await api('/api/reviews/' + reviewId,{
+    method:'DELETE'
+  });
+
+  await load();
+  openAdminUser(userId);
+}
+function openEditAdminMaintenance(maintenanceId, userId){
+  const item = (state.data.maintenance || []).find(m => m.id === maintenanceId);
+
+  if(!item){
+    alert('Maintenance report not found');
+    return;
+  }
+
+  modal(`
+    <h2>Edit Maintenance Report</h2>
+
+    <form id="editMaintenanceForm">
+
+      <div class="field">
+        <label>Issue</label>
+        <input name="title" value="${item.title || ''}" required>
+      </div>
+
+      <div class="field">
+        <label>Priority</label>
+        <select name="priority">
+          <option ${item.priority==='Low'?'selected':''}>Low</option>
+          <option ${item.priority==='Medium'?'selected':''}>Medium</option>
+          <option ${item.priority==='High'?'selected':''}>High</option>
+          <option ${item.priority==='Urgent'?'selected':''}>Urgent</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Status</label>
+        <select name="status">
+          <option ${item.status==='Open'?'selected':''}>Open</option>
+          <option ${item.status==='In Progress'?'selected':''}>In Progress</option>
+          <option ${item.status==='Completed'?'selected':''}>Completed</option>
+          <option ${item.status==='Closed'?'selected':''}>Closed</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea name="notes">${item.notes || ''}</textarea>
+      </div>
+
+      <button>Save Changes</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+
+    </form>
+  `);
+
+  $('#editMaintenanceForm').onsubmit = async e => {
+    e.preventDefault();
+
+    await api('/api/maintenance/' + maintenanceId,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.fromEntries(new FormData(e.target)))
+    });
+
+    closeModal();
+    await load();
+    openAdminUser(userId);
+  };
+}
+
+async function deleteAdminMaintenance(maintenanceId, userId){
+  if(!confirm('Delete this maintenance report?')) return;
+
+  await api('/api/maintenance/' + maintenanceId,{
     method:'DELETE'
   });
 
