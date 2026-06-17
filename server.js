@@ -191,7 +191,60 @@ landlordId: user.role === 'administrator' && req.body.landlordId
 
   res.json(p);
 });
+app.put('/api/properties/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
 
+  const p = (db.properties || []).find(x => x.id === req.params.id);
+
+  if (!p) {
+    return res.status(404).json({ error: 'Property not found' });
+  }
+
+  if (!propertyAccess(user, p)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  p.address = req.body.address || p.address;
+  p.type = req.body.type || '';
+  p.status = req.body.status || p.status || 'Needs Review';
+  p.updatedAt = new Date().toISOString();
+  p.updatedBy = user.id;
+
+  audit(db, 'Updated property ' + p.address, user);
+  write(db);
+
+  res.json({ success: true, property: p });
+});
+
+app.delete('/api/properties/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  const index = (db.properties || []).findIndex(x => x.id === req.params.id);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Property not found' });
+  }
+
+  const p = db.properties[index];
+
+  if (!propertyAccess(user, p)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  db.properties.splice(index, 1);
+
+  db.documents = (db.documents || []).filter(d => d.propertyId !== p.id);
+  db.reviews = (db.reviews || []).filter(r => r.propertyId !== p.id);
+  db.maintenance = (db.maintenance || []).filter(m => m.propertyId !== p.id);
+  db.contractorJobs = (db.contractorJobs || []).filter(j => j.propertyId !== p.id);
+
+  audit(db, 'Deleted property ' + p.address, user);
+  write(db);
+
+  res.json({ success: true });
+});
 /* DOCUMENTS */
 
 app.post('/api/documents', auth, upload.single('file'), (req, res) => {
