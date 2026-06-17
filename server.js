@@ -53,7 +53,8 @@ function safeUser(u) {
     id: u.id,
     name: u.name,
     email: u.email,
-    role: u.role
+    role: u.role,
+    disabled: !!u.disabled
   };
 }
 
@@ -114,24 +115,31 @@ function findLink(db, token, type) {
 /* AUTH */
 
 app.post('/api/login', (req, res) => {
-  const { email, password } = req.body;
   const db = read();
 
-  const user = db.users.find(
-    u => u.email.toLowerCase() === (email || '').toLowerCase()
+  const user = (db.users || []).find(
+    u => (u.email || '').toLowerCase() === (req.body.email || '').toLowerCase()
   );
 
-  if (!user || !bcrypt.compareSync(password || '', user.passwordHash)) {
-    return res.status(401).json({ error: 'Invalid login' });
+  if (!user || user.password !== req.body.password) {
+    return res.status(401).json({
+      error: 'Invalid email or password'
+    });
   }
 
-  req.session.userId = user.id;
-  res.json({ user: safeUser(user) });
-});
+  if (user.disabled) {
+    return res.status(403).json({
+      error: 'This account has been disabled. Please contact support.'
+    });
+  }
 
-app.post('/api/logout', (req, res) =>
-  req.session.destroy(() => res.json({ ok: true }))
-);
+  const token = user.id;
+
+  res.json({
+    token,
+    user: safeUser(user)
+  });
+});
 
 app.get('/api/me', (req, res) => {
   if (!req.session.userId) return res.json({ user: null });
