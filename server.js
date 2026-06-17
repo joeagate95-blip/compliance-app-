@@ -1078,6 +1078,87 @@ app.post('/api/admin/users', auth, adminOnly, (req, res) => {
     user: safeUser(user)
   });
 });
+app.put('/api/admin/users/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  if (user.role !== 'administrator') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  const target = (db.users || []).find(u => u.id === req.params.id);
+
+  if (!target) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  target.name = req.body.name || target.name;
+  target.email = req.body.email || target.email;
+  target.role = req.body.role || target.role;
+  target.updatedAt = new Date().toISOString();
+  target.updatedBy = user.id;
+
+  audit(db, 'Updated user ' + target.email, user);
+  write(db);
+
+  res.json({ success: true, user: safeUser(target) });
+});
+
+app.post('/api/admin/users/:id/toggle-disabled', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  if (user.role !== 'administrator') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  const target = (db.users || []).find(u => u.id === req.params.id);
+
+  if (!target) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  if (target.id === user.id) {
+    return res.status(400).json({ error: 'You cannot disable your own admin account' });
+  }
+
+  target.disabled = !target.disabled;
+  target.updatedAt = new Date().toISOString();
+  target.updatedBy = user.id;
+
+  audit(db, (target.disabled ? 'Disabled user ' : 'Enabled user ') + target.email, user);
+  write(db);
+
+  res.json({ success: true, user: safeUser(target) });
+});
+
+app.delete('/api/admin/users/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  if (user.role !== 'administrator') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  const index = (db.users || []).findIndex(u => u.id === req.params.id);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const target = db.users[index];
+
+  if (target.id === user.id) {
+    return res.status(400).json({ error: 'You cannot delete your own admin account' });
+  }
+
+  db.users.splice(index, 1);
+
+  audit(db, 'Deleted user ' + target.email, user);
+  write(db);
+
+  res.json({ success: true });
+});
 app.get('/api/admin-control', auth, adminOnly, (req, res) => {
   const db = read();
 
