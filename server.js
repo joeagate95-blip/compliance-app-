@@ -133,6 +133,14 @@ app.post('/api/login', (req, res) => {
     });
   }
 
+  req.session.userId = user.id;
+
+  res.json({
+    success: true,
+    user: safeUser(user)
+  });
+});
+
   const token = user.id;
 
   res.json({
