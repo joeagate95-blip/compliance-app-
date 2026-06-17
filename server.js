@@ -121,10 +121,16 @@ app.post('/api/login', (req, res) => {
     u => (u.email || '').toLowerCase() === (req.body.email || '').toLowerCase()
   );
 
-  if (!user || user.password !== req.body.password) {
-    return res.status(401).json({
-      error: 'Invalid email or password'
-    });
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid email or password' });
+  }
+
+  const passwordOk =
+    user.password === req.body.password ||
+    (user.passwordHash && bcrypt.compareSync(req.body.password || '', user.passwordHash));
+
+  if (!passwordOk) {
+    return res.status(401).json({ error: 'Invalid email or password' });
   }
 
   if (user.disabled) {
@@ -141,18 +147,16 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-  const token = user.id;
-
-  res.json({
-    token,
-    user: safeUser(user)
-  });
-
 app.get('/api/me', (req, res) => {
   if (!req.session.userId) return res.json({ user: null });
   res.json({ user: safeUser(currentUser(req)) });
 });
 
+app.post('/api/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.json({ success: true });
+  });
+});
 /* MAIN APP DATA */
 
 app.get('/api/app', auth, (req, res) => {
