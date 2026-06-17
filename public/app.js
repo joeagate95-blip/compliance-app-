@@ -234,26 +234,35 @@ function dashboard(){
     </div>
   </div>`;
 }
-
 function propertyTable(props){
   return `
   <table>
-    <tr><th>Property</th><th>Status</th><th>Last Property Condition Review</th><th>Action</th></tr>
+    <tr>
+      <th>Property</th>
+      <th>Status</th>
+      <th>Last Property Condition Review</th>
+      <th>Action</th>
+    </tr>
+
     ${props.map(p=>`
       <tr>
-        <td><b>${p.address}</b><br><span class="muted">${p.type}</span></td>
-        <td><span class="pill">${p.status}</span></td>
-        <td>${fmt(p.lastConditionReview)}</td>
-        <td><button class="btn2" onclick="openCompliance('${p.id}')">Open Compliance Page</button></td>
-      </tr>
-    `).join('')}
-  </table>`;
-}
+        <td>
+          <b>${p.address}</b><br>
+          <span class="muted">${p.type || ''}</span>
+        </td>
 
-function openCompliance(id){
-  state.view='compliance';
-  state.selected=id;
-  render();
+        <td><span class="pill">${p.status || 'Needs Review'}</span></td>
+
+        <td>${fmt(p.lastConditionReview)}</td>
+
+        <td>
+          <button class="btn2" onclick="openCompliance('${p.id}')">Open Compliance Page</button>
+          <button class="btn2" onclick="openEditProperty('${p.id}')">Edit</button>
+          <button class="btn2" onclick="deleteProperty('${p.id}')">Delete</button>
+        </td>
+      </tr>
+    `).join('') || '<tr><td colspan="4">No properties found.</td></tr>'}
+  </table>`;
 }
 
 function properties(){
@@ -1695,7 +1704,67 @@ async function loadAdminAnalytics(){
     if(el)el.innerHTML='<p class="red">Could not load analytics</p>';
   }
 }
+function openEditProperty(propertyId){
+  const p = (state.data.properties || []).find(x => x.id === propertyId);
 
+  if(!p){
+    alert('Property not found');
+    return;
+  }
+
+  modal(`
+    <h2>Edit Property</h2>
+
+    <form id="editPropertyForm">
+      <div class="field">
+        <label>Property Address</label>
+        <input name="address" value="${p.address || ''}" required>
+      </div>
+
+      <div class="field">
+        <label>Property Type</label>
+        <input name="type" value="${p.type || ''}">
+      </div>
+
+      <div class="field">
+        <label>Status</label>
+        <select name="status">
+          <option ${p.status==='Needs Review'?'selected':''}>Needs Review</option>
+          <option ${p.status==='Compliant'?'selected':''}>Compliant</option>
+          <option ${p.status==='Action Required'?'selected':''}>Action Required</option>
+        </select>
+      </div>
+
+      <button>Save Changes</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+    </form>
+  `);
+
+  $('#editPropertyForm').onsubmit = async e => {
+    e.preventDefault();
+
+    await api('/api/properties/' + propertyId,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.fromEntries(new FormData(e.target)))
+    });
+
+    closeModal();
+    await load();
+    render();
+  };
+}
+
+async function deleteProperty(propertyId){
+  if(!confirm('Delete this property? This will remove it from the portfolio.')) return;
+
+  await api('/api/properties/' + propertyId,{
+    method:'DELETE'
+  });
+
+  await load();
+  render();
+}
 function openAddProperty(){
   modal(`
   <h2>Add Property</h2>
