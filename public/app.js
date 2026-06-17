@@ -1080,23 +1080,124 @@ function adminMaintenance(){
 function adminUserList(users, heading){
   return `
     <div class="card">
-<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-  <h2>${heading}</h2>
-  <button onclick="openCreateUserModal()">Create New User</button>
-</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <h2>${heading}</h2>
+        <button onclick="openCreateUserModal()">Create New User</button>
+      </div>
+
       <table>
-        <tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+
         ${users.map(u=>`
           <tr>
             <td>${u.name || ''}</td>
             <td>${u.email || ''}</td>
             <td><span class="pill">${u.role || ''}</span></td>
-          <td><button class="btn2" onclick="openAdminUser('${u.id}')">Open User</button></td>
+            <td>
+              <span class="pill">${u.disabled ? 'Disabled' : 'Active'}</span>
+            </td>
+            <td>
+              <button class="btn2" onclick="openAdminUser('${u.id}')">Open User</button>
+              <button class="btn2" onclick="openEditUserModal('${u.id}')">Edit</button>
+              <button class="btn2" onclick="toggleUserDisabled('${u.id}')">
+                ${u.disabled ? 'Enable' : 'Disable'}
+              </button>
+              <button class="btn2" onclick="deleteUser('${u.id}')">Delete</button>
+            </td>
           </tr>
-        `).join('') || '<tr><td colspan="4">No users found.</td></tr>'}
+        `).join('') || '<tr><td colspan="5">No users found.</td></tr>'}
       </table>
     </div>
   `;
+}
+function openEditUserModal(userId){
+  const user = (state.data.users || []).find(u => u.id === userId);
+
+  if(!user){
+    alert('User not found');
+    return;
+  }
+
+  modal(`
+    <h2>Edit User</h2>
+
+    <form id="editUserForm">
+      <div class="field">
+        <label>Name</label>
+        <input name="name" value="${user.name || ''}" required>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input name="email" type="email" value="${user.email || ''}" required>
+      </div>
+
+      <div class="field">
+        <label>Role</label>
+        <select name="role">
+          <option value="landlord" ${user.role==='landlord'?'selected':''}>Landlord</option>
+          <option value="letting_agent" ${user.role==='letting_agent'?'selected':''}>Letting Agent</option>
+          <option value="contractor" ${user.role==='contractor'?'selected':''}>Contractor</option>
+          <option value="tenant" ${user.role==='tenant'?'selected':''}>Tenant</option>
+          <option value="administrator" ${user.role==='administrator'?'selected':''}>Administrator</option>
+        </select>
+      </div>
+
+      <button>Save Changes</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+    </form>
+  `);
+
+  $('#editUserForm').onsubmit = async e => {
+    e.preventDefault();
+
+    await api('/api/admin/users/' + userId,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.fromEntries(new FormData(e.target)))
+    });
+
+    closeModal();
+    await load();
+    render();
+  };
+}
+
+async function toggleUserDisabled(userId){
+  const user = (state.data.users || []).find(u => u.id === userId);
+
+  if(!user){
+    alert('User not found');
+    return;
+  }
+
+  const action = user.disabled ? 'enable' : 'disable';
+
+  if(!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+  await api('/api/admin/users/' + userId + '/toggle-disabled',{
+    method:'POST'
+  });
+
+  await load();
+  render();
+}
+
+async function deleteUser(userId){
+  if(!confirm('Delete this user? This cannot be undone.')) return;
+
+  await api('/api/admin/users/' + userId,{
+    method:'DELETE'
+  });
+
+  await load();
+  render();
 }
 function openCreateUserModal(){
   modal(`
