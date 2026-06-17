@@ -1050,17 +1050,18 @@ function adminMaintenance(){
         ${items.map(m=>{
           const p = (state.data.properties || []).find(x=>x.id===m.propertyId);
           return `
-        <tr>
-  <td>${p?.address || ''}</td>
-  <td>${m.title || ''}</td>
-  <td>${m.priority || ''}</td>
-  <td>${m.status || ''}</td>
-  <td>${m.createdAt ? new Date(m.createdAt).toLocaleString('en-GB') : ''}</td>
-  <td>
-    <button class="btn2" onclick="openEditAdminMaintenance('${m.id}','${state.user.id}')">Edit</button>
-    <button class="btn2" onclick="deleteAdminMaintenance('${m.id}','${state.user.id}')">Delete</button>
-  </td>
-</tr>
+            <tr>
+              <td>${p?.address || ''}</td>
+              <td>${m.title || ''}</td>
+              <td>${m.priority || ''}</td>
+              <td>${m.status || ''}</td>
+              <td>${m.createdAt ? new Date(m.createdAt).toLocaleString('en-GB') : ''}</td>
+              <td>
+                <button class="btn2" onclick="openEditAdminMaintenance('${m.id}','${state.user.id}')">Edit</button>
+                <button class="btn2" onclick="deleteAdminMaintenance('${m.id}','${state.user.id}')">Delete</button>
+              </td>
+            </tr>
+          `;
         }).join('') || '<tr><td colspan="6">No maintenance reports found.</td></tr>'}
       </table>
     </div>
