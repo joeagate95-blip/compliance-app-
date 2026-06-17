@@ -147,7 +147,6 @@ app.post('/api/login', (req, res) => {
     token,
     user: safeUser(user)
   });
-});
 
 app.get('/api/me', (req, res) => {
   if (!req.session.userId) return res.json({ user: null });
