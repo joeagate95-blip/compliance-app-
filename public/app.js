@@ -967,23 +967,123 @@ function adminLandlords(){
 }
 
 function adminContractors(){
+  const contractors = state.data.contractors || [];
+
   return `
     <div class="card">
-      <h2>Contractors</h2>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>Contractors</h2>
+      </div>
+
       <table>
-        <tr><th>Company</th><th>Trade</th><th>Email</th><th>Phone</th><th>Status</th></tr>
-        ${(state.data.contractors || []).map(c=>`
+        <tr>
+          <th>Company</th>
+          <th>Trade</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+
+        ${contractors.map(c => `
           <tr>
             <td>${c.company || ''}</td>
             <td>${c.trade || ''}</td>
             <td>${c.email || ''}</td>
             <td>${c.phone || ''}</td>
-            <td>${c.approved ? 'Approved' : 'Not approved'}</td>
+            <td>${c.approved ? 'Approved' : 'Not Approved'}</td>
+            <td>
+              <button class="btn2" onclick="openEditContractor('${c.id}')">Edit</button>
+              <button class="btn2" onclick="deleteContractor('${c.id}')">Delete</button>
+            </td>
           </tr>
-        `).join('') || '<tr><td colspan="5">No contractors found.</td></tr>'}
+        `).join('') || '<tr><td colspan="6">No contractors found.</td></tr>'}
       </table>
     </div>
   `;
+}
+
+function openEditContractor(contractorId){
+  const c = (state.data.contractors || []).find(x => x.id === contractorId);
+
+  if(!c){
+    alert('Contractor not found');
+    return;
+  }
+
+  modal(`
+    <h2>Edit Contractor</h2>
+
+    <form id="editContractorForm">
+
+      <div class="field">
+        <label>Company</label>
+        <input name="company" value="${c.company || ''}" required>
+      </div>
+
+      <div class="field">
+        <label>Trade</label>
+        <input name="trade" value="${c.trade || ''}">
+      </div>
+
+      <div class="field">
+        <label>Contact Name</label>
+        <input name="contactName" value="${c.contactName || ''}">
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input name="email" value="${c.email || ''}">
+      </div>
+
+      <div class="field">
+        <label>Phone</label>
+        <input name="phone" value="${c.phone || ''}">
+      </div>
+
+      <div class="field">
+        <label>Accreditation</label>
+        <input name="accreditation" value="${c.accreditation || ''}">
+      </div>
+
+      <div class="field">
+        <label>Status</label>
+        <select name="approved">
+          <option value="true" ${c.approved ? 'selected' : ''}>Approved</option>
+          <option value="false" ${!c.approved ? 'selected' : ''}>Not Approved</option>
+        </select>
+      </div>
+
+      <button type="submit">Save Changes</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+
+    </form>
+  `);
+
+  $('#editContractorForm').onsubmit = async e => {
+    e.preventDefault();
+
+    await api('/api/contractors/' + contractorId,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.fromEntries(new FormData(e.target)))
+    });
+
+    closeModal();
+    await load();
+    render();
+  };
+}
+
+async function deleteContractor(contractorId){
+  if(!confirm('Delete this contractor?')) return;
+
+  await api('/api/contractors/' + contractorId,{
+    method:'DELETE'
+  });
+
+  await load();
+  render();
 }
 
 function adminProperties(){
