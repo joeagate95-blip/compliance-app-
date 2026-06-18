@@ -54,7 +54,20 @@ function safeUser(u) {
     name: u.name,
     email: u.email,
     role: u.role,
-    disabled: !!u.disabled
+    disabled: !!u.disabled,
+
+    accountId: u.accountId || u.id,
+    accountType: u.accountType || 'landlord',
+
+    permissionLevel:
+      u.permissionLevel ||
+      (u.role === 'administrator'
+        ? 'platform_admin'
+        : 'account_owner'),
+
+    plan: u.plan || 'starter',
+    propertyLimit: u.propertyLimit || 5,
+    adminUserLimit: u.adminUserLimit || 1
   };
 }
 
