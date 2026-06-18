@@ -101,12 +101,38 @@ function currentUser(req) {
   return user;
 }
 
-function propertyAccess(user, p) {
+function getAccountId(user) {
+  return user?.accountId || user?.id;
+}
+
+function isPlatformAdmin(user) {
+  return user?.role === 'administrator' || user?.permissionLevel === 'platform_admin';
+}
+
+function isAccountAdmin(user) {
   return (
-    user.role === 'administrator' ||
+    user?.permissionLevel === 'account_owner' ||
+    user?.permissionLevel === 'account_admin'
+  );
+}
+
+function canManageDocuments(user) {
+  return isPlatformAdmin(user) || isAccountAdmin(user);
+}
+
+function propertyAccess(user, p) {
+  if (!user || !p) return false;
+
+  if (isPlatformAdmin(user)) return true;
+
+  const accountId = getAccountId(user);
+
+  return (
+    p.accountId === accountId ||
     p.landlordId === user.id ||
     p.agentId === user.id ||
     (p.tenantIds || []).includes(user.id) ||
+    (p.shadowLandlordUserIds || []).includes(user.id) ||
     user.role === 'contractor'
   );
 }
