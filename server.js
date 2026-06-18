@@ -617,6 +617,65 @@ app.post('/api/contractor-jobs', auth, (req, res) => {
   });
 });
 
+app.put('/api/contractor-jobs/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  const job = (db.contractorJobs || []).find(j => j.id === req.params.id);
+
+  if (!job) {
+    return res.status(404).json({ error: 'Contractor job not found' });
+  }
+
+  const property = (db.properties || []).find(p => p.id === job.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  job.complianceType = req.body.complianceType || job.complianceType;
+  job.contractorId = req.body.contractorId || '';
+  job.contractorName = req.body.contractorName || '';
+  job.contractorEmail = req.body.contractorEmail || '';
+  job.status = req.body.status || job.status;
+  job.quotedPrice = req.body.quotedPrice || '';
+  job.bookedDate = req.body.bookedDate || '';
+  job.bookedTime = req.body.bookedTime || '';
+  job.contractorNotes = req.body.contractorNotes || '';
+  job.updatedAt = new Date().toISOString();
+  job.updatedBy = user.id;
+
+  audit(db, 'Updated contractor job for ' + job.propertyAddress, user);
+  write(db);
+
+  res.json({ success: true, job });
+});
+
+app.delete('/api/contractor-jobs/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  const index = (db.contractorJobs || []).findIndex(j => j.id === req.params.id);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Contractor job not found' });
+  }
+
+  const job = db.contractorJobs[index];
+  const property = (db.properties || []).find(p => p.id === job.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  db.contractorJobs.splice(index, 1);
+
+  audit(db, 'Deleted contractor job for ' + job.propertyAddress, user);
+  write(db);
+
+  res.json({ success: true });
+});
+
 app.get('/api/contractor-jobs', auth, (req, res) => {
   const db = read();
   const user = currentUser(req);
