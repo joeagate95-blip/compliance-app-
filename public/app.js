@@ -264,7 +264,12 @@ function propertyTable(props){
     `).join('') || '<tr><td colspan="4">No properties found.</td></tr>'}
   </table>`;
 }
-
+function openCompliance(id){
+  state.view = 'compliance';
+  state.selected = id;
+  state.filter = null;
+  render();
+}
 function properties(){
   return `
   <div class="grid">
