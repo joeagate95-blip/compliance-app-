@@ -370,8 +370,8 @@ app.post('/api/contractors', auth, (req, res) => {
 
   const c = {
     id: uuid(),
-    trade: req.body.trade,
-    company: req.body.company,
+    trade: req.body.trade || '',
+    company: req.body.company || '',
     contactName: req.body.contactName || '',
     email: req.body.email || '',
     phone: req.body.phone || '',
@@ -379,11 +379,67 @@ app.post('/api/contractors', auth, (req, res) => {
     approved: req.body.approved !== false
   };
 
+  db.contractors = db.contractors || [];
   db.contractors.push(c);
+
   audit(db, 'Added approved contractor ' + c.company, user);
   write(db);
 
   res.json(c);
+});
+
+app.put('/api/contractors/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  if (user.role !== 'administrator') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  const c = (db.contractors || []).find(x => x.id === req.params.id);
+
+  if (!c) {
+    return res.status(404).json({ error: 'Contractor not found' });
+  }
+
+  c.company = req.body.company || c.company;
+  c.trade = req.body.trade || '';
+  c.contactName = req.body.contactName || '';
+  c.email = req.body.email || '';
+  c.phone = req.body.phone || '';
+  c.accreditation = req.body.accreditation || '';
+  c.approved = req.body.approved === 'true' || req.body.approved === true;
+  c.updatedAt = new Date().toISOString();
+  c.updatedBy = user.id;
+
+  audit(db, 'Updated contractor ' + c.company, user);
+  write(db);
+
+  res.json({ success: true, contractor: c });
+});
+
+app.delete('/api/contractors/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  if (user.role !== 'administrator') {
+    return res.status(403).json({ error: 'Admin only' });
+  }
+
+  const index = (db.contractors || []).findIndex(x => x.id === req.params.id);
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Contractor not found' });
+  }
+
+  const c = db.contractors[index];
+
+  db.contractors.splice(index, 1);
+
+  audit(db, 'Deleted contractor ' + c.company, user);
+  write(db);
+
+  res.json({ success: true });
 });
 
 /* CONTRACTOR UPLOAD LINKS */
