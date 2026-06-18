@@ -78,7 +78,27 @@ function auth(req, res, next) {
 
 function currentUser(req) {
   const db = read();
-  return db.users.find(u => u.id === req.session.userId);
+
+  const user = db.users.find(
+    u => u.id === req.session.userId
+  );
+
+  if (!user) return null;
+
+  user.accountId = user.accountId || user.id;
+  user.accountType = user.accountType || 'landlord';
+
+  user.permissionLevel =
+    user.permissionLevel ||
+    (user.role === 'administrator'
+      ? 'platform_admin'
+      : 'account_owner');
+
+  user.plan = user.plan || 'starter';
+  user.propertyLimit = user.propertyLimit || 5;
+  user.adminUserLimit = user.adminUserLimit || 1;
+
+  return user;
 }
 
 function propertyAccess(user, p) {
