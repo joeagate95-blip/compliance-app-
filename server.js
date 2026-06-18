@@ -249,19 +249,35 @@ app.post('/api/properties', auth, (req, res) => {
   const db = read();
   const user = currentUser(req);
 
-  const p = {
-    id: uuid(),
-    address: req.body.address,
-    type: req.body.type || '',
-landlordId: user.role === 'administrator' && req.body.landlordId
-  ? req.body.landlordId
-  : user.id,
-    agentId: req.body.agentId || '',
-    tenantIds: [],
-    status: 'Needs Review',
-    lastConditionReview: '',
-    nextConditionReview: ''
-  };
+  const ownerId =
+  user.role === 'administrator' && req.body.landlordId
+    ? req.body.landlordId
+    : user.id;
+
+const p = {
+  id: uuid(),
+
+  accountId: getAccountId(user),
+
+  ownerUserId: ownerId,
+
+  address: req.body.address,
+  type: req.body.type || '',
+
+  landlordId: ownerId,
+
+  agentId: req.body.agentId || '',
+
+  tenantIds: [],
+
+  shadowLandlordUserIds: [],
+
+  status: 'Needs Review',
+
+  lastConditionReview: '',
+
+  nextConditionReview: ''
+};
 
   db.properties.push(p);
   audit(db, 'Created property ' + p.address, user);
