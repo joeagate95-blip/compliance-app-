@@ -376,13 +376,14 @@ app.post('/api/contractors', auth, (req, res) => {
     email: req.body.email || '',
     phone: req.body.phone || '',
     accreditation: req.body.accreditation || '',
+    landlordIds: Array.isArray(req.body.landlordIds) ? req.body.landlordIds : [],
     approved: req.body.approved !== false
   };
 
   db.contractors = db.contractors || [];
   db.contractors.push(c);
 
-  audit(db, 'Added approved contractor ' + c.company, user);
+  audit(db, 'Added contractor ' + c.company, user);
   write(db);
 
   res.json(c);
@@ -408,6 +409,7 @@ app.put('/api/contractors/:id', auth, (req, res) => {
   c.email = req.body.email || '';
   c.phone = req.body.phone || '';
   c.accreditation = req.body.accreditation || '';
+  c.landlordIds = Array.isArray(req.body.landlordIds) ? req.body.landlordIds : [];
   c.approved = req.body.approved === 'true' || req.body.approved === true;
   c.updatedAt = new Date().toISOString();
   c.updatedBy = user.id;
