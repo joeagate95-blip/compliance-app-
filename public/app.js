@@ -1207,25 +1207,137 @@ function adminDocuments(){
 
 function adminJobs(){
   const jobs = state.data.contractorJobs || [];
+  const contractors = state.data.contractors || [];
 
   return `
     <div class="card">
       <h2>Contractor Jobs</h2>
+
       <table>
-        <tr><th>Property</th><th>Type</th><th>Contractor</th><th>Status</th><th>Booked</th><th>Quote</th></tr>
+        <tr>
+          <th>Property</th>
+          <th>Type</th>
+          <th>Contractor</th>
+          <th>Status</th>
+          <th>Booked</th>
+          <th>Quote</th>
+          <th>Action</th>
+        </tr>
+
         ${jobs.map(j=>`
           <tr>
             <td>${j.propertyAddress || ''}</td>
             <td>${j.complianceType || ''}</td>
-            <td>${j.contractorName || j.contractorEmail || ''}</td>
-            <td>${j.status || ''}</td>
+            <td>${j.contractorName || j.contractorEmail || 'Not assigned'}</td>
+            <td><span class="pill">${j.status || 'Requested'}</span></td>
             <td>${j.bookedDate ? `${j.bookedDate} ${j.bookedTime || ''}` : 'Not booked'}</td>
-            <td>${j.quotedPrice || 'Not provided'}</td>
+            <td>${j.quotedPrice ? '£' + j.quotedPrice : 'Not provided'}</td>
+            <td>
+              <button class="btn2" onclick="openEditContractorJob('${j.id}')">Edit</button>
+              <button class="btn2" onclick="deleteContractorJob('${j.id}')">Delete</button>
+            </td>
           </tr>
-        `).join('') || '<tr><td colspan="6">No jobs found.</td></tr>'}
+        `).join('') || '<tr><td colspan="7">No jobs found.</td></tr>'}
       </table>
     </div>
   `;
+}
+
+function openEditContractorJob(jobId){
+  const job = (state.data.contractorJobs || []).find(j => j.id === jobId);
+  const contractors = state.data.contractors || [];
+
+  if(!job){
+    alert('Job not found');
+    return;
+  }
+
+  modal(`
+    <h2>Edit Contractor Job</h2>
+
+    <form id="editContractorJobForm">
+
+      <div class="field">
+        <label>Job Type</label>
+        <input name="complianceType" value="${job.complianceType || ''}">
+      </div>
+
+      <div class="field">
+        <label>Contractor</label>
+        <select name="contractorId">
+          <option value="">Not assigned</option>
+          ${contractors.map(c=>`
+            <option value="${c.id}" ${job.contractorId === c.id ? 'selected' : ''}>
+              ${c.company} - ${c.trade}
+            </option>
+          `).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Status</label>
+        <select name="status">
+          ${['Requested','Quoted','Booked In','Completed','Cancelled'].map(s=>`
+            <option value="${s}" ${job.status === s ? 'selected' : ''}>${s}</option>
+          `).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Quoted Price</label>
+        <input name="quotedPrice" value="${job.quotedPrice || ''}" placeholder="e.g. 85">
+      </div>
+
+      <div class="field">
+        <label>Booked Date</label>
+        <input type="date" name="bookedDate" value="${job.bookedDate || ''}">
+      </div>
+
+      <div class="field">
+        <label>Booked Time</label>
+        <input type="time" name="bookedTime" value="${job.bookedTime || ''}">
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea name="contractorNotes">${job.contractorNotes || ''}</textarea>
+      </div>
+
+      <button type="submit">Save Changes</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+    </form>
+  `);
+
+  $('#editContractorJobForm').onsubmit = async e => {
+    e.preventDefault();
+
+    const data = Object.fromEntries(new FormData(e.target));
+    const contractor = contractors.find(c => c.id === data.contractorId);
+
+    data.contractorName = contractor ? contractor.company : '';
+    data.contractorEmail = contractor ? contractor.email : '';
+
+    await api('/api/contractor-jobs/' + jobId,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+
+    closeModal();
+    await load();
+    render();
+  };
+}
+
+async function deleteContractorJob(jobId){
+  if(!confirm('Delete this contractor job?')) return;
+
+  await api('/api/contractor-jobs/' + jobId,{
+    method:'DELETE'
+  });
+
+  await load();
+  render();
 }
 
 function adminMaintenance(){
