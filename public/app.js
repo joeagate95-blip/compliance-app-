@@ -1003,8 +1003,58 @@ function adminContractors(){
   `;
 }
 
+function adminContractors(){
+  const contractors = state.data.contractors || [];
+  const landlords = (state.data.users || []).filter(u =>
+    u.role === 'landlord' || u.role === 'letting_agent'
+  );
+
+  return `
+    <div class="card">
+      <h2>Contractors</h2>
+
+      <table>
+        <tr>
+          <th>Company</th>
+          <th>Trade</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Assigned Landlords</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+
+        ${contractors.map(c=>{
+          const assigned = landlords
+            .filter(l => (c.landlordIds || []).includes(l.id))
+            .map(l => l.name)
+            .join(', ');
+
+          return `
+            <tr>
+              <td>${c.company || ''}</td>
+              <td>${c.trade || ''}</td>
+              <td>${c.email || ''}</td>
+              <td>${c.phone || ''}</td>
+              <td>${assigned || 'Not assigned'}</td>
+              <td>${c.approved ? 'Approved' : 'Not Approved'}</td>
+              <td>
+                <button class="btn2" onclick="openEditContractor('${c.id}')">Edit</button>
+                <button class="btn2" onclick="deleteContractor('${c.id}')">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join('') || '<tr><td colspan="7">No contractors found.</td></tr>'}
+      </table>
+    </div>
+  `;
+}
+
 function openEditContractor(contractorId){
   const c = (state.data.contractors || []).find(x => x.id === contractorId);
+  const landlords = (state.data.users || []).filter(u =>
+    u.role === 'landlord' || u.role === 'letting_agent'
+  );
 
   if(!c){
     alert('Contractor not found');
@@ -1047,6 +1097,18 @@ function openEditContractor(contractorId){
       </div>
 
       <div class="field">
+        <label>Assign to Landlords / Agents</label>
+        <select name="landlordIds" multiple size="6">
+          ${landlords.map(l=>`
+            <option value="${l.id}" ${(c.landlordIds || []).includes(l.id) ? 'selected' : ''}>
+              ${l.name} - ${l.email}
+            </option>
+          `).join('')}
+        </select>
+        <p class="muted">Hold Cmd on Mac or Ctrl on Windows to select multiple landlords.</p>
+      </div>
+
+      <div class="field">
         <label>Status</label>
         <select name="approved">
           <option value="true" ${c.approved ? 'selected' : ''}>Approved</option>
@@ -1063,16 +1125,34 @@ function openEditContractor(contractorId){
   $('#editContractorForm').onsubmit = async e => {
     e.preventDefault();
 
+    const fd = new FormData(e.target);
+    const data = Object.fromEntries(fd);
+
+    data.landlordIds = Array.from(
+      e.target.querySelector('[name="landlordIds"]').selectedOptions
+    ).map(o => o.value);
+
     await api('/api/contractors/' + contractorId,{
       method:'PUT',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(Object.fromEntries(new FormData(e.target)))
+      body:JSON.stringify(data)
     });
 
     closeModal();
     await load();
     render();
   };
+}
+
+async function deleteContractor(contractorId){
+  if(!confirm('Delete this contractor?')) return;
+
+  await api('/api/contractors/' + contractorId,{
+    method:'DELETE'
+  });
+
+  await load();
+  render();
 }
 
 async function deleteContractor(contractorId){
