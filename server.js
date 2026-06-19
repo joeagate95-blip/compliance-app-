@@ -125,14 +125,23 @@ function propertyAccess(user, p) {
 
   if (isPlatformAdmin(user)) return true;
 
-  const accountId = getAccountId(user);
+  if (user.role === 'landlord') {
+    return p.landlordId === user.id;
+  }
 
-return (
-  p.landlordId === user.id ||
-  p.agentId === user.id ||
-  (p.tenantIds || []).includes(user.id) ||
-  (p.shadowLandlordUserIds || []).includes(user.id)
-);
+  if (user.role === 'letting_agent') {
+    return p.agentId === user.id;
+  }
+
+  if (user.role === 'tenant') {
+    return (p.tenantIds || []).includes(user.id);
+  }
+
+  if (user.role === 'contractor') {
+    return false;
+  }
+
+  return false;
 }
 
 function audit(db, action, user) {
