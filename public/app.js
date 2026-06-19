@@ -772,10 +772,13 @@ function openContractorJobModal(propertyId='',type='Gas Safety'){
     const fd=Object.fromEntries(new FormData(e.target));
     const contractor=contractors.find(c=>c.id===fd.contractorId);
 
-    fd.contractorName=contractor?.company||'';
-    fd.contractorEmail=contractor?.email||'';
-    fd.landlordName=state.user.name;
-    fd.landlordEmail=state.user.email;
+  fd.contractorName = contractor?.company || '';
+fd.contractorEmail = contractor?.email || '';
+
+fd.landlordName = state.user.name || '';
+fd.landlordEmail = state.user.email || '';
+fd.landlordPhone = fd.landlordPhone || '';
+fd.landlordCompany = fd.landlordCompany || state.user.name || '';
 
     const r=await api('/api/contractor-jobs',{
       method:'POST',
