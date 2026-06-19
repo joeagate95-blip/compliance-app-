@@ -652,79 +652,49 @@ function contractorCentre(){
   <div class="grid">
 
     <div class="card span12">
-      <h2>Contractor Centre</h2>
-      <p class="muted">
-        Manage approved contractors, create ready-made contractor messages, send job links, and track quote/booked/completed jobs.
-      </p>
-      <button onclick="openContractorJobModal()">Create Contractor Job / Quote Request</button>
-    </div>
-
-    <div class="card span12">
-      <h2>Approved Contractors</h2>
-      <p class="muted">Saved contractors for gas, electrical, EPC, legionella and general property compliance.</p>
-
-      <div class="grid">
-        ${contractors.map(c=>`
-          <div class="card span4">
-            <h2>${c.company}</h2>
-            <p><span class="pill">${c.trade}</span></p>
-            <p>${c.contactName}<br>${c.email}<br>${c.phone}</p>
-            <p><b>${c.accreditation}</b></p>
-            <p class="green">${c.approved?'Approved':'Not approved'}</p>
-          </div>
-        `).join('')||'<p class="muted">No approved contractors added yet.</p>'}
-      </div>
-    </div>
-
-    <div class="card span12">
-      <h2>Add Contractor</h2>
-      <form id="contractorForm" class="grid">
-        <input name="trade" placeholder="Trade" class="span3">
-        <input name="company" placeholder="Company" class="span3">
-        <input name="contactName" placeholder="Contact" class="span3">
-        <input name="email" placeholder="Email" class="span3">
-        <input name="phone" placeholder="Phone" class="span3">
-        <input name="accreditation" placeholder="Accreditation" class="span6">
-        <button class="span3">Save Contractor</button>
-      </form>
-    </div>
-
-    <div class="card span12">
-      <h2>Ready-Made Contractor Templates</h2>
-      <p class="muted">Click a template to copy a message you can email, text or WhatsApp to an approved contractor.</p>
-
-      <div class="grid">
-        ${types.map(t=>`
-          <div class="card span4">
-            <h3>${t}</h3>
-            <p>${t} due template for quote request and booking.</p>
-            <button class="btn2" onclick="copySimpleTemplate('${t}')">Copy Template</button>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-
-    <div class="card span12">
       <h2>Contractor Jobs</h2>
       <table>
         <tr>
-          <th>Property</th>
-          <th>Job</th>
-          <th>Contractor</th>
-          <th>Status</th>
-          <th>Booked</th>
-          <th>Quote</th>
-          <th>Link</th>
+         <th>Property</th>
+<th>Job</th>
+<th>Landlord / Agent</th>
+<th>Status</th>
+<th>Booked</th>
+<th>Quote</th>
+<th>Action</th>
         </tr>
         ${jobs.map(j=>`
           <tr>
-            <td>${j.propertyAddress||''}</td>
-            <td>${j.complianceType||''}</td>
-            <td>${j.contractorName||j.contractorEmail||''}</td>
-            <td><span class="pill">${j.status||'Requested'}</span></td>
-            <td>${j.bookedDate?`${j.bookedDate} ${j.bookedTime||''}`:'Not booked'}</td>
-            <td>${j.quotedPrice?`£${j.quotedPrice}`:'Not provided'}</td>
-            <td><button class="btn2" onclick="showJobLink('${j.token}')">View Link</button></td>
+            <td>${j.propertyAddress || ''}</td>
+
+<td>${j.complianceType || ''}</td>
+
+<td>
+  <b>${j.landlordCompany || j.landlordName || ''}</b><br>
+  ${j.landlordEmail || ''}<br>
+  ${j.landlordPhone || ''}
+</td>
+
+<td>${j.status || 'Requested'}</td>
+
+<td>
+  ${j.bookedDate
+    ? `${j.bookedDate} ${j.bookedTime || ''}`
+    : 'Not booked'}
+</td>
+
+<td>
+  ${j.quotedPrice
+    ? `£${j.quotedPrice}`
+    : 'Not provided'}
+</td>
+
+<td>
+  <button class="btn2"
+    onclick="showJobLink('${j.token}')">
+    Open Job
+  </button>
+</td>
           </tr>
         `).join('')||'<tr><td colspan="7">No contractor jobs created yet.</td></tr>'}
       </table>
