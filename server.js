@@ -220,26 +220,76 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/app', auth, (req, res) => {
   const db = read();
+
   db.links = db.links || [];
   db.contractorJobs = db.contractorJobs || [];
+  db.documents = db.documents || [];
+  db.properties = db.properties || [];
+  db.reviews = db.reviews || [];
+  db.maintenance = db.maintenance || [];
+  db.contractors = db.contractors || [];
+  db.reminders = db.reminders || [];
+  db.audit = db.audit || [];
 
   const user = currentUser(req);
+
+  if (!user) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+
   const properties = db.properties.filter(p => propertyAccess(user, p));
   const propertyIds = properties.map(p => p.id);
+  const accountId = getAccountId(user);
+
+  const contractors = isPlatformAdmin(user)
+    ? db.contractors
+    : db.contractors.filter(c =>
+        c.accountId === accountId ||
+        (c.accountIds || []).includes(accountId) ||
+        (c.landlordIds || []).includes(user.id)
+      );
 
   res.json({
     user: safeUser(user),
-    users: user.role === 'administrator' ? db.users.map(safeUser) : [],
+
+    users: isPlatformAdmin(user)
+      ? db.users.map(safeUser)
+      : [],
+
     properties,
-    documents: db.documents.filter(d => propertyIds.includes(d.propertyId)),
-    contractors: db.contractors || [],
-    contractorJobs: db.contractorJobs.filter(j =>
-      user.role === 'administrator' || propertyIds.includes(j.propertyId)
+
+    documents: db.documents.filter(d =>
+      propertyIds.includes(d.propertyId) ||
+      d.accountId === accountId
     ),
-    reviews: (db.reviews || []).filter(r => propertyIds.includes(r.propertyId)),
-    maintenance: (db.maintenance || []).filter(m => propertyIds.includes(m.propertyId)),
-    reminders: db.reminders || [],
-    audit: user.role === 'administrator' ? (db.audit || []).slice(0, 100) : []
+
+    contractors,
+
+    contractorJobs: db.contractorJobs.filter(j =>
+      isPlatformAdmin(user) ||
+      propertyIds.includes(j.propertyId) ||
+      j.accountId === accountId ||
+      j.contractorId === user.id ||
+      j.contractorEmail === user.email
+    ),
+
+    reviews: db.reviews.filter(r =>
+      propertyIds.includes(r.propertyId) ||
+      r.accountId === accountId
+    ),
+
+    maintenance: db.maintenance.filter(m =>
+      propertyIds.includes(m.propertyId) ||
+      m.accountId === accountId
+    ),
+
+    reminders: isPlatformAdmin(user)
+      ? db.reminders
+      : db.reminders.filter(r => r.accountId === accountId),
+
+    audit: isPlatformAdmin(user)
+      ? db.audit.slice(0, 100)
+      : []
   });
 });
 
