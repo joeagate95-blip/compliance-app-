@@ -127,14 +127,13 @@ function propertyAccess(user, p) {
 
   const accountId = getAccountId(user);
 
-  return (
-    p.accountId === accountId ||
-    p.landlordId === user.id ||
-    p.agentId === user.id ||
-    (p.tenantIds || []).includes(user.id) ||
-    (p.shadowLandlordUserIds || []).includes(user.id) ||
-    user.role === 'contractor'
-  );
+return (
+  p.accountId === accountId ||
+  p.landlordId === user.id ||
+  p.agentId === user.id ||
+  (p.tenantIds || []).includes(user.id) ||
+  (p.shadowLandlordUserIds || []).includes(user.id)
+);
 }
 
 function audit(db, action, user) {
