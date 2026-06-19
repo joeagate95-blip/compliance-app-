@@ -740,6 +740,7 @@ app.post('/api/contractor-jobs', auth, (req, res) => {
   const job = {
     id: uuid(),
     token,
+    accountId: property.accountId || getAccountId(user),
     propertyId: property.id,
     propertyAddress: property.address,
     contractorId: req.body.contractorId || '',
