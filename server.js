@@ -236,9 +236,42 @@ app.get('/api/app', auth, (req, res) => {
     return res.status(401).json({ error: 'Not logged in' });
   }
 
+  const accountId = getAccountId(user);
+
+  if (user.role === 'contractor') {
+    const contractorJobs = db.contractorJobs.filter(j =>
+      j.contractorId === user.id ||
+      j.contractorEmail === user.email
+    );
+
+    const uploadedDocumentIds = contractorJobs
+      .map(j => j.completedCertificateId)
+      .filter(Boolean);
+
+    const uploadedFileNames = contractorJobs
+      .map(j => j.completedCertificateFile)
+      .filter(Boolean);
+
+    return res.json({
+      user: safeUser(user),
+      users: [],
+      properties: [],
+      contractors: [],
+      contractorJobs,
+      documents: db.documents.filter(d =>
+        uploadedDocumentIds.includes(d.id) ||
+        uploadedFileNames.includes(d.fileName) ||
+        d.uploadedBy === 'contractor-job-link'
+      ),
+      reviews: [],
+      maintenance: [],
+      reminders: [],
+      audit: []
+    });
+  }
+
   const properties = db.properties.filter(p => propertyAccess(user, p));
   const propertyIds = properties.map(p => p.id);
-  const accountId = getAccountId(user);
 
   const contractors = isPlatformAdmin(user)
     ? db.contractors
@@ -267,9 +300,7 @@ app.get('/api/app', auth, (req, res) => {
     contractorJobs: db.contractorJobs.filter(j =>
       isPlatformAdmin(user) ||
       propertyIds.includes(j.propertyId) ||
-      j.accountId === accountId ||
-      j.contractorId === user.id ||
-      j.contractorEmail === user.email
+      j.accountId === accountId
     ),
 
     reviews: db.reviews.filter(r =>
