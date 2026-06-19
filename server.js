@@ -523,17 +523,29 @@ app.post('/api/contractors', auth, (req, res) => {
   const db = read();
   const user = currentUser(req);
 
-  const c = {
-    id: uuid(),
-    trade: req.body.trade || '',
-    company: req.body.company || '',
-    contactName: req.body.contactName || '',
-    email: req.body.email || '',
-    phone: req.body.phone || '',
-    accreditation: req.body.accreditation || '',
-    landlordIds: Array.isArray(req.body.landlordIds) ? req.body.landlordIds : [],
-    approved: req.body.approved !== false
-  };
+  const accountId = getAccountId(user);
+
+const c = {
+  id: uuid(),
+
+  accountId,
+  accountIds: [accountId],
+
+  trade: req.body.trade || '',
+  company: req.body.company || '',
+  contactName: req.body.contactName || '',
+  email: req.body.email || '',
+  phone: req.body.phone || '',
+  accreditation: req.body.accreditation || '',
+
+  landlordIds: Array.isArray(req.body.landlordIds)
+    ? req.body.landlordIds
+    : [user.id],
+
+  approved: req.body.approved !== false,
+  createdAt: new Date().toISOString(),
+  createdBy: user.id
+};
 
   db.contractors = db.contractors || [];
   db.contractors.push(c);
