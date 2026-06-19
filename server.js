@@ -240,16 +240,12 @@ app.get('/api/app', auth, (req, res) => {
   if (user.role === 'contractor') {
     const contractorJobs = db.contractorJobs.filter(j =>
       j.contractorId === user.id ||
-      j.contractorEmail === user.email
+      (j.contractorEmail || '').toLowerCase() === (user.email || '').toLowerCase()
     );
 
-    const uploadedDocumentIds = contractorJobs
-      .map(j => j.completedCertificateId)
-      .filter(Boolean);
-
-    const uploadedFileNames = contractorJobs
-      .map(j => j.completedCertificateFile)
-      .filter(Boolean);
+    const contractorJobIds = contractorJobs.map(j => j.id);
+    const uploadedDocumentIds = contractorJobs.map(j => j.completedCertificateId).filter(Boolean);
+    const uploadedFileNames = contractorJobs.map(j => j.completedCertificateFile).filter(Boolean);
 
     return res.json({
       user: safeUser(user),
@@ -260,7 +256,7 @@ app.get('/api/app', auth, (req, res) => {
       documents: db.documents.filter(d =>
         uploadedDocumentIds.includes(d.id) ||
         uploadedFileNames.includes(d.fileName) ||
-        d.uploadedBy === 'contractor-job-link'
+        contractorJobIds.includes(d.contractorJobId)
       ),
       reviews: [],
       maintenance: [],
@@ -275,8 +271,6 @@ app.get('/api/app', auth, (req, res) => {
   const contractors = isPlatformAdmin(user)
     ? db.contractors
     : db.contractors.filter(c =>
-        c.accountId === accountId ||
-        (c.accountIds || []).includes(accountId) ||
         (c.landlordIds || []).includes(user.id)
       );
 
@@ -290,30 +284,27 @@ app.get('/api/app', auth, (req, res) => {
     properties,
 
     documents: db.documents.filter(d =>
-      propertyIds.includes(d.propertyId) ||
-      d.accountId === accountId
+      propertyIds.includes(d.propertyId)
     ),
 
     contractors,
 
-contractorJobs: db.contractorJobs.filter(j =>
-  isPlatformAdmin(user) ||
-  propertyIds.includes(j.propertyId)
-),
+    contractorJobs: db.contractorJobs.filter(j =>
+      isPlatformAdmin(user) ||
+      propertyIds.includes(j.propertyId)
+    ),
 
     reviews: db.reviews.filter(r =>
-      propertyIds.includes(r.propertyId) ||
-      r.accountId === accountId
+      propertyIds.includes(r.propertyId)
     ),
 
     maintenance: db.maintenance.filter(m =>
-      propertyIds.includes(m.propertyId) ||
-      m.accountId === accountId
+      propertyIds.includes(m.propertyId)
     ),
 
     reminders: isPlatformAdmin(user)
       ? db.reminders
-      : db.reminders.filter(r => r.accountId === accountId),
+      : [],
 
     audit: isPlatformAdmin(user)
       ? db.audit.slice(0, 100)
