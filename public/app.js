@@ -93,29 +93,42 @@ function renderLogin(){
   };
 }
 function layout(content){
-const nav = state.user.role === 'administrator'
-  ? [
-      'admin',
-      'adminUsers',
-      'adminLandlords',
-      'adminContractors',
-      'adminProperties',
-      'adminDocuments',
-      'adminJobs',
-      'adminMaintenance'
-    ]
-  : [
-      'dashboard',
-      'properties',
-      'compliance',
-      'expiry',
-      'documents',
-      'tenants',
-      'contractorCentre',
-      'reviews',
-      'maintenance',
-      'landlordDetails'
-    ];
+let nav = [];
+
+if(state.user.role === 'administrator'){
+  nav = [
+    'admin',
+    'adminUsers',
+    'adminLandlords',
+    'adminContractors',
+    'adminProperties',
+    'adminDocuments',
+    'adminJobs',
+    'adminMaintenance'
+  ];
+} else if(state.user.role === 'contractor'){
+  nav = [
+    'contractorCentre'
+  ];
+} else if(state.user.role === 'tenant'){
+  nav = [
+    'documents',
+    'maintenance'
+  ];
+} else {
+  nav = [
+    'dashboard',
+    'properties',
+    'compliance',
+    'expiry',
+    'documents',
+    'tenants',
+    'contractorCentre',
+    'reviews',
+    'maintenance',
+    'landlordDetails'
+  ];
+}
 
   app.innerHTML=`
   <div class="shell">
