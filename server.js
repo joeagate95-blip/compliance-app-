@@ -297,11 +297,10 @@ app.get('/api/app', auth, (req, res) => {
 
     contractors,
 
-    contractorJobs: db.contractorJobs.filter(j =>
-      isPlatformAdmin(user) ||
-      propertyIds.includes(j.propertyId) ||
-      j.accountId === accountId
-    ),
+contractorJobs: db.contractorJobs.filter(j =>
+  isPlatformAdmin(user) ||
+  propertyIds.includes(j.propertyId)
+),
 
     reviews: db.reviews.filter(r =>
       propertyIds.includes(r.propertyId) ||
