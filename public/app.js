@@ -2299,20 +2299,57 @@ async function openContractorLink(propertyId=''){
   <button class="btn2" onclick="closeModal()">Close</button>`);
 }
 
-async function openTenantLink(propertyId=''){
-  const pid=propertyId||state.data.properties[0]?.id;
-  const r=await api('/api/links/tenant-maintenance',{
+async function openTenantLink(){
+
+  const properties = state.data.properties || [];
+
+  modal(`
+    <h2>Create Tenant Maintenance Link</h2>
+
+    <div class="field">
+      <label>Property</label>
+      <select id="tenantLinkProperty">
+        ${properties.map(p=>`
+          <option value="${p.id}">
+            ${p.address}
+          </option>
+        `).join('')}
+      </select>
+    </div>
+
+    <button onclick="createTenantMaintenanceLink()">Create Link</button>
+    <button class="btn2" onclick="closeModal()">Cancel</button>
+  `);
+}
+
+async function createTenantMaintenanceLink(){
+
+  const pid = $('#tenantLinkProperty').value;
+
+  const r = await api('/api/links/tenant-maintenance',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({propertyId:pid})
   });
 
   modal(`
-  <h2>Tenant Maintenance Link</h2>
-  <p>Send this link to the tenant. They can upload photos and describe the maintenance problem.</p>
-  <input value="${location.origin}${r.url}" onclick="this.select()" style="width:100%">
-  <p><a href="${r.url}" target="_blank">Open link</a></p>
-  <button class="btn2" onclick="closeModal()">Close</button>`);
+    <h2>Tenant Maintenance Link</h2>
+    <p>Send this link to the tenant. They can upload photos and describe the maintenance problem.</p>
+
+    <input value="${location.origin}${r.url}"
+      onclick="this.select()"
+      style="width:100%">
+
+    <p>
+      <a href="${r.url}" target="_blank">
+        Open link
+      </a>
+    </p>
+
+    <button class="btn2" onclick="closeModal()">
+      Close
+    </button>
+  `);
 }
 
 function modal(html){
