@@ -1020,16 +1020,16 @@ app.delete('/api/reviews/:id', auth, (req, res) => {
 });
 
 /* TENANT MAINTENANCE */
-
 app.post('/api/links/tenant-maintenance', auth, (req, res) => {
   const db = read();
   db.links = db.links || [];
 
   const user = currentUser(req);
-  const p = db.properties.find(x => x.id === req.body.propertyId);
 
-  if (!p || !propertyAccess(user, p)) {
-    return res.status(403).json({ error: 'No access' });
+  const properties = (db.properties || []).filter(p => propertyAccess(user, p));
+
+  if (!properties.length) {
+    return res.status(400).json({ error: 'No properties available for this user' });
   }
 
   const token = uuid();
@@ -1038,13 +1038,13 @@ app.post('/api/links/tenant-maintenance', auth, (req, res) => {
     id: uuid(),
     token,
     type: 'tenant_maintenance',
-    propertyId: p.id,
+    propertyIds: properties.map(p => p.id),
     createdBy: user.id,
     createdAt: new Date().toISOString(),
     active: true
   });
 
-  audit(db, 'Created tenant maintenance link for ' + p.address, user);
+  audit(db, 'Created tenant maintenance link', user);
   write(db);
 
   res.json({
@@ -1138,15 +1138,30 @@ app.get('/tenant-maintenance/:token', (req, res) => {
     return res.status(404).send(publicLayout('Link expired', '<p>This maintenance link is not valid.</p>'));
   }
 
-  const p = db.properties.find(x => x.id === link.propertyId);
+  const propertyIds = link.propertyIds || (link.propertyId ? [link.propertyId] : []);
+
+  const properties = (db.properties || []).filter(p =>
+    propertyIds.includes(p.id)
+  );
 
   res.send(publicLayout('Tenant Maintenance Report', `
-    <p><b>Property:</b> ${p?.address || ''}</p>
     <form method="post" enctype="multipart/form-data">
+
+      <div class="field">
+        <label>Property address</label>
+        <select name="propertyId" required>
+          <option value="">Select property</option>
+          ${properties.map(p => `
+            <option value="${p.id}">${p.address}</option>
+          `).join('')}
+        </select>
+      </div>
+
       <div class="field">
         <label>Problem title</label>
         <input name="title" required placeholder="e.g. Leak under kitchen sink">
       </div>
+
       <div class="field">
         <label>Priority</label>
         <select name="priority">
@@ -1156,14 +1171,17 @@ app.get('/tenant-maintenance/:token', (req, res) => {
           <option>Urgent</option>
         </select>
       </div>
+
       <div class="field">
         <label>Description of problem</label>
         <textarea name="notes" required></textarea>
       </div>
+
       <div class="field">
         <label>Upload images</label>
         <input type="file" name="photos" multiple accept="image/*">
       </div>
+
       <button>Submit maintenance report</button>
     </form>
   `));
@@ -1177,9 +1195,23 @@ app.post('/tenant-maintenance/:token', upload.array('photos', 12), (req, res) =>
     return res.status(404).send(publicLayout('Link expired', '<p>This maintenance link is not valid.</p>'));
   }
 
+  const allowedPropertyIds = link.propertyIds || (link.propertyId ? [link.propertyId] : []);
+
+  if (!allowedPropertyIds.includes(req.body.propertyId)) {
+    return res.status(403).send(publicLayout('No access', '<p>This property is not available on this maintenance link.</p>'));
+  }
+
+  const property = (db.properties || []).find(p => p.id === req.body.propertyId);
+
+  if (!property) {
+    return res.status(404).send(publicLayout('Property not found', '<p>The selected property could not be found.</p>'));
+  }
+
   const m = {
     id: uuid(),
-    propertyId: link.propertyId,
+    propertyId: property.id,
+    accountId: property.accountId || '',
+    propertyAddress: property.address,
     title: req.body.title,
     priority: req.body.priority || 'Medium',
     status: 'Open',
@@ -1197,6 +1229,7 @@ app.post('/tenant-maintenance/:token', upload.array('photos', 12), (req, res) =>
 
   res.send(publicLayout('Report submitted', `
     <p>Your maintenance report has been sent to the landlord.</p>
+    <p>Property: ${property.address}</p>
     <p>Reference: ${m.id}</p>
   `));
 });
