@@ -1025,11 +1025,10 @@ app.post('/api/links/tenant-maintenance', auth, (req, res) => {
   db.links = db.links || [];
 
   const user = currentUser(req);
+  const p = db.properties.find(x => x.id === req.body.propertyId);
 
-  const properties = (db.properties || []).filter(p => propertyAccess(user, p));
-
-  if (!properties.length) {
-    return res.status(400).json({ error: 'No properties available for this user' });
+  if (!p || !propertyAccess(user, p)) {
+    return res.status(403).json({ error: 'No access' });
   }
 
   const token = uuid();
@@ -1038,13 +1037,13 @@ app.post('/api/links/tenant-maintenance', auth, (req, res) => {
     id: uuid(),
     token,
     type: 'tenant_maintenance',
-    propertyIds: properties.map(p => p.id),
+    propertyId: p.id,
     createdBy: user.id,
     createdAt: new Date().toISOString(),
     active: true
   });
 
-  audit(db, 'Created tenant maintenance link', user);
+  audit(db, 'Created tenant maintenance link for ' + p.address, user);
   write(db);
 
   res.json({
