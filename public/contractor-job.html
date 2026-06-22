@@ -11,7 +11,7 @@ h1{color:#0057A8}
 .card{background:#f9fbff;border:1px solid #d9e6f5;padding:20px;border-radius:10px;margin-bottom:20px}
 label{display:block;margin-bottom:8px;font-weight:bold}
 input,select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;margin-bottom:15px;box-sizing:border-box}
-button{background:#0057A8;color:white;border:none;padding:12px 20px;border-radius:6px;cursor:pointer}
+button{background:#0057A8;color:white;border:none;padding:12px 20px;border-radius:6px;cursor:pointer;margin-right:8px;margin-bottom:8px}
 button:disabled{background:#999;cursor:not-allowed}
 .status{display:inline-block;padding:8px 12px;border-radius:6px;background:#e8f2ff;color:#0057A8;font-weight:bold}
 .success{color:green;margin-top:15px}
@@ -52,28 +52,30 @@ button:disabled{background:#999;cursor:not-allowed}
 <label>Contractor Notes</label>
 <textarea id="contractorNotes" name="contractorNotes" rows="5"></textarea>
 
+<button id="saveUpdateBtn" type="button">Save Status / Quote Update</button>
+
 <hr>
 
 <h2>Completed Certificate Upload</h2>
 
 <label>Certificate Issue Date REQUIRED</label>
-<input type="date" id="issueDate" name="issueDate" required>
+<input type="date" id="issueDate" name="issueDate">
 
 <label>Certificate Expiry Date REQUIRED</label>
-<input type="date" id="expiryDate" name="expiryDate" required>
+<input type="date" id="expiryDate" name="expiryDate">
 
 <label>Upload Certificate PDF / Photo REQUIRED</label>
-<input type="file" id="certificate" name="certificate" required>
+<input type="file" id="certificate" name="certificate">
 
 <label>Certificate Notes</label>
 <textarea id="certificateNotes" name="certificateNotes" rows="3"></textarea>
 
-<button id="saveBtn" type="submit" disabled>Save Update</button>
+<button id="completeBtn" type="submit" disabled>Complete Job & Upload Certificate</button>
 
 </form>
 
 <div id="message" class="error">
-You must enter issue date, expiry date and upload the certificate before saving.
+You can save quote/status updates without a certificate. Certificate is only required when completing the job.
 </div>
 </div>
 </div>
@@ -81,21 +83,21 @@ You must enter issue date, expiry date and upload the certificate before saving.
 <script>
 const token = window.location.pathname.split("/").pop();
 
-function validateRequiredFields(){
+function validateCompletionFields(){
     const issueDate = document.getElementById("issueDate").value;
     const expiryDate = document.getElementById("expiryDate").value;
     const certificate = document.getElementById("certificate").files.length > 0;
-    const saveBtn = document.getElementById("saveBtn");
+    const completeBtn = document.getElementById("completeBtn");
     const message = document.getElementById("message");
 
     if(issueDate && expiryDate && certificate){
-        saveBtn.disabled = false;
+        completeBtn.disabled = false;
         message.className = "success";
-        message.innerHTML = "Ready to save.";
+        message.innerHTML = "Ready to complete job and upload certificate.";
     } else {
-        saveBtn.disabled = true;
+        completeBtn.disabled = true;
         message.className = "error";
-        message.innerHTML = "You must enter issue date, expiry date and upload the certificate before saving.";
+        message.innerHTML = "You can save quote/status updates without a certificate. Certificate is only required when completing the job.";
     }
 }
 
@@ -135,12 +137,40 @@ async function loadJob(){
     document.getElementById("bookedTime").value = job.bookedTime || "";
     document.getElementById("contractorNotes").value = job.contractorNotes || "";
 
-    validateRequiredFields();
+    validateCompletionFields();
 }
 
 ["issueDate","expiryDate","certificate"].forEach(id=>{
-    document.getElementById(id).addEventListener("change",validateRequiredFields);
-    document.getElementById(id).addEventListener("input",validateRequiredFields);
+    document.getElementById(id).addEventListener("change",validateCompletionFields);
+    document.getElementById(id).addEventListener("input",validateCompletionFields);
+});
+
+document.getElementById("saveUpdateBtn").addEventListener("click", async function(){
+    const formData = new FormData();
+
+    formData.append("status", document.getElementById("status").value);
+    formData.append("quotedPrice", document.getElementById("quotedPrice").value);
+    formData.append("bookedDate", document.getElementById("bookedDate").value);
+    formData.append("bookedTime", document.getElementById("bookedTime").value);
+    formData.append("contractorNotes", document.getElementById("contractorNotes").value);
+
+    const response = await fetch(`/api/contractor-job/${token}/update`,{
+        method:"POST",
+        body:formData
+    });
+
+    const result = await response.json();
+
+    if(!response.ok){
+        document.getElementById("message").className = "error";
+        document.getElementById("message").innerHTML = result.error || "There was a problem saving the update.";
+        return;
+    }
+
+    document.getElementById("message").className = "success";
+    document.getElementById("message").innerHTML = "Job update saved successfully.";
+
+    loadJob();
 });
 
 document.getElementById("updateForm").addEventListener("submit", async function(e){
@@ -153,7 +183,7 @@ document.getElementById("updateForm").addEventListener("submit", async function(
     if(!issueDate || !expiryDate || !certificate){
         document.getElementById("message").className = "error";
         document.getElementById("message").innerHTML =
-            "You must enter issue date, expiry date and upload the certificate before saving.";
+            "You must enter issue date, expiry date and upload the certificate before completing the job.";
         return;
     }
 
@@ -177,7 +207,7 @@ document.getElementById("updateForm").addEventListener("submit", async function(
 
     if(!response.ok){
         document.getElementById("message").className = "error";
-        document.getElementById("message").innerHTML = result.error || "There was a problem saving.";
+        document.getElementById("message").innerHTML = result.error || "There was a problem completing the job.";
         return;
     }
 
