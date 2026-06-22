@@ -978,6 +978,7 @@ function maintenance(){
 
 function openMaintenanceContractorModal(maintenanceId){
   const m = (state.data.maintenance || []).find(x=>x.id===maintenanceId);
+
   if(!m){
     alert('Maintenance report not found');
     return;
@@ -985,18 +986,26 @@ function openMaintenanceContractorModal(maintenanceId){
 
   const p = state.data.properties.find(x=>x.id===m.propertyId);
   const contractors = state.data.contractors || [];
+  const reportUrl = `/api/maintenance/${m.id}/pdf`;
 
   modal(`
     <h2>Send Maintenance Report to Contractor</h2>
 
     <p><b>Property:</b> ${p?.address || m.propertyAddress || ''}</p>
     <p><b>Issue:</b> ${m.title}</p>
-    <p>${m.notes || ''}</p>
+    <p><b>Priority:</b> ${m.priority}</p>
+
+    <p>
+      <a href="${reportUrl}" target="_blank">
+        View / Download Tenant Maintenance Report
+      </a>
+    </p>
 
     <form id="maintenanceContractorForm">
       <input type="hidden" name="propertyId" value="${m.propertyId}">
       <input type="hidden" name="complianceType" value="Maintenance">
       <input type="hidden" name="maintenanceId" value="${m.id}">
+      <input type="hidden" name="maintenanceReportUrl" value="${reportUrl}">
 
       <div class="field">
         <label>Contractor</label>
@@ -1012,16 +1021,13 @@ function openMaintenanceContractorModal(maintenanceId){
 
       <div class="field">
         <label>Message to contractor</label>
-        <textarea name="message" rows="8">Maintenance issue reported.
+        <textarea name="message" rows="6">A tenant has submitted a maintenance report.
 
 Property: ${p?.address || m.propertyAddress || ''}
 Issue: ${m.title}
 Priority: ${m.priority}
 
-Details:
-${m.notes || ''}
-
-Please provide quote, availability and completion evidence.</textarea>
+Please review the attached maintenance report link and provide quote, availability and completion evidence.</textarea>
       </div>
 
       <button>Create Contractor Job Link</button>
@@ -1040,6 +1046,9 @@ Please provide quote, availability and completion evidence.</textarea>
     fd.landlordName = state.user.name || '';
     fd.landlordEmail = state.user.email || '';
     fd.landlordCompany = state.user.name || '';
+    fd.maintenanceTitle = m.title || '';
+    fd.maintenancePriority = m.priority || '';
+    fd.maintenanceReportUrl = `/api/maintenance/${m.id}/pdf`;
 
     const r = await api('/api/contractor-jobs',{
       method:'POST',
