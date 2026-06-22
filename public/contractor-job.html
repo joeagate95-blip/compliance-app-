@@ -16,6 +16,7 @@ button:disabled{background:#999;cursor:not-allowed}
 .status{display:inline-block;padding:8px 12px;border-radius:6px;background:#e8f2ff;color:#0057A8;font-weight:bold}
 .success{color:green;margin-top:15px}
 .error{color:red;margin-top:15px;font-weight:bold}
+.report-link{display:inline-block;background:#0057A8;color:#fff;text-decoration:none;padding:10px 14px;border-radius:6px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -102,15 +103,30 @@ async function loadJob(){
     const response = await fetch(`/api/contractor-job/${token}`);
     const job = await response.json();
 
+    if(job.error){
+        document.getElementById("jobDetails").innerHTML = "<p>Job not found.</p>";
+        return;
+    }
+
+    const reportLink = job.maintenanceReportUrl
+        ? `
+          <p><strong>Tenant Maintenance Report:</strong><br>
+          <a class="report-link" href="${job.maintenanceReportUrl}" target="_blank">
+            View / Download Report
+          </a></p>
+        `
+        : "";
+
     document.getElementById("jobDetails").innerHTML = `
-        <h2>${job.complianceType}</h2>
-        <p><strong>Property:</strong> ${job.propertyAddress}</p>
-        <p><strong>Landlord:</strong> ${job.landlordName}</p>
-        <p><strong>Email:</strong> ${job.landlordEmail}</p>
-        <p><strong>Phone:</strong> ${job.landlordPhone}</p>
-        <p><strong>Company:</strong> ${job.landlordCompany}</p>
-        <p><strong>Message:</strong><br>${job.message}</p>
-        <p><span class="status">${job.status}</span></p>
+        <h2>${job.complianceType || "Contractor Job"}</h2>
+        <p><strong>Property:</strong> ${job.propertyAddress || ""}</p>
+        <p><strong>Landlord:</strong> ${job.landlordName || ""}</p>
+        <p><strong>Email:</strong> ${job.landlordEmail || ""}</p>
+        <p><strong>Phone:</strong> ${job.landlordPhone || ""}</p>
+        <p><strong>Company:</strong> ${job.landlordCompany || ""}</p>
+        ${reportLink}
+        <p><strong>Message:</strong><br>${job.message || ""}</p>
+        <p><span class="status">${job.status || "Requested"}</span></p>
     `;
 
     document.getElementById("status").value = job.status || "Requested";
