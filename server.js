@@ -1137,24 +1137,18 @@ app.get('/tenant-maintenance/:token', (req, res) => {
     return res.status(404).send(publicLayout('Link expired', '<p>This maintenance link is not valid.</p>'));
   }
 
-  const propertyIds = link.propertyIds || (link.propertyId ? [link.propertyId] : []);
+  const property = (db.properties || []).find(p => p.id === link.propertyId);
 
-  const properties = (db.properties || []).filter(p =>
-    propertyIds.includes(p.id)
-  );
+  if (!property) {
+    return res.status(404).send(publicLayout('Property not found', '<p>The linked property could not be found.</p>'));
+  }
 
   res.send(publicLayout('Tenant Maintenance Report', `
+    <p><b>Property:</b> ${property.address}</p>
+
     <form method="post" enctype="multipart/form-data">
 
-      <div class="field">
-        <label>Property address</label>
-        <select name="propertyId" required>
-          <option value="">Select property</option>
-          ${properties.map(p => `
-            <option value="${p.id}">${p.address}</option>
-          `).join('')}
-        </select>
-      </div>
+      <input type="hidden" name="propertyId" value="${property.id}">
 
       <div class="field">
         <label>Problem title</label>
