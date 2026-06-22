@@ -1188,16 +1188,10 @@ app.post('/tenant-maintenance/:token', upload.array('photos', 12), (req, res) =>
     return res.status(404).send(publicLayout('Link expired', '<p>This maintenance link is not valid.</p>'));
   }
 
-  const allowedPropertyIds = link.propertyIds || (link.propertyId ? [link.propertyId] : []);
-
-  if (!allowedPropertyIds.includes(req.body.propertyId)) {
-    return res.status(403).send(publicLayout('No access', '<p>This property is not available on this maintenance link.</p>'));
-  }
-
-  const property = (db.properties || []).find(p => p.id === req.body.propertyId);
+  const property = (db.properties || []).find(p => p.id === link.propertyId);
 
   if (!property) {
-    return res.status(404).send(publicLayout('Property not found', '<p>The selected property could not be found.</p>'));
+    return res.status(404).send(publicLayout('Property not found', '<p>The linked property could not be found.</p>'));
   }
 
   const m = {
@@ -1205,9 +1199,9 @@ app.post('/tenant-maintenance/:token', upload.array('photos', 12), (req, res) =>
     propertyId: property.id,
     accountId: property.accountId || '',
     propertyAddress: property.address,
-    title: req.body.title,
+    title: req.body.title || 'Tenant maintenance report',
     priority: req.body.priority || 'Medium',
-    status: 'Open',
+    status: 'Reported',
     notes: req.body.notes || '',
     photos: (req.files || []).map(f => f.filename),
     reportedBy: 'tenant-link',
@@ -1217,13 +1211,13 @@ app.post('/tenant-maintenance/:token', upload.array('photos', 12), (req, res) =>
   db.maintenance = db.maintenance || [];
   db.maintenance.unshift(m);
 
-  audit(db, 'Tenant maintenance report: ' + m.title, { email: 'tenant-link' });
+  audit(db, 'Tenant maintenance report submitted: ' + m.title, { email: 'tenant-link' });
   write(db);
 
   res.send(publicLayout('Report submitted', `
     <p>Your maintenance report has been sent to the landlord.</p>
-    <p>Property: ${property.address}</p>
-    <p>Reference: ${m.id}</p>
+    <p><b>Property:</b> ${property.address}</p>
+    <p><b>Reference:</b> ${m.id}</p>
   `));
 });
 
