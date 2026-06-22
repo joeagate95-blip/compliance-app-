@@ -750,29 +750,43 @@ app.post('/api/contractor-jobs', auth, (req, res) => {
   const job = {
     id: uuid(),
     token,
+
     accountId: property.accountId || getAccountId(user),
+
     propertyId: property.id,
     propertyAddress: property.address,
+
     contractorId: req.body.contractorId || '',
     contractorName: req.body.contractorName || '',
     contractorEmail: req.body.contractorEmail || '',
+
     complianceType: req.body.complianceType || 'Gas Safety',
+
+    maintenanceId: req.body.maintenanceId || '',
+    maintenanceTitle: req.body.maintenanceTitle || '',
+    maintenancePriority: req.body.maintenancePriority || '',
+    maintenanceReportUrl: req.body.maintenanceReportUrl || '',
+
     landlordName: req.body.landlordName || user.name,
     landlordEmail: req.body.landlordEmail || user.email,
     landlordPhone: req.body.landlordPhone || '',
     landlordCompany: req.body.landlordCompany || '',
+
     message: req.body.message || '',
+
     status: 'Requested',
     quotedPrice: '',
     bookedDate: '',
     bookedTime: '',
     contractorNotes: '',
+
     createdBy: user.id,
     createdAt: new Date().toISOString(),
     updatedAt: ''
   };
 
   db.contractorJobs.unshift(job);
+
   audit(db, 'Created contractor job request for ' + property.address, user);
   write(db);
 
