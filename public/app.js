@@ -916,36 +916,125 @@ function reviews(){
 }
 
 function maintenance(){
+
+  const contractorJobs = state.data.contractorJobs || [];
+
   return `
   <div class="grid">
+
     <div class="card span6">
       <h2>Maintenance Reports</h2>
-      <p><button onclick="openTenantLink()">Create Tenant Maintenance Link</button></p>
+
+      <p>
+        <button onclick="openTenantLink()">
+          Create Tenant Maintenance Link
+        </button>
+      </p>
 
       ${(state.data.maintenance || []).map(m=>{
+
         const p = state.data.properties.find(x=>x.id===m.propertyId);
+
+        const linkedJob = contractorJobs.find(j =>
+          j.maintenanceId === m.id
+        );
+
         return `
           <div class="card">
-            <h3>${m.title}</h3>
-            <p><b>Property:</b> ${p?.address || m.propertyAddress || ''}</p>
-            <p><b>Priority:</b> ${m.priority} | <b>Status:</b> ${m.status}</p>
-            <p>${m.notes || ''}</p>
-            <p><a href="/api/maintenance/${m.id}/pdf" target="_blank">Download PDF Report</a></p>
 
-            <button onclick="openMaintenanceContractorModal('${m.id}')">
-              Send to Contractor
-            </button>
+            <h3>${m.title}</h3>
+
+            <p>
+              <b>Property:</b>
+              ${p?.address || m.propertyAddress || ''}
+            </p>
+
+            <p>
+              <b>Priority:</b> ${m.priority}
+            </p>
+
+            <p>
+              <b>Maintenance Status:</b>
+              ${m.status}
+            </p>
+
+            ${linkedJob ? `
+              <hr>
+
+              <h4>Contractor Progress</h4>
+
+              <p>
+                <b>Contractor:</b>
+                ${linkedJob.contractorName || 'Assigned'}
+              </p>
+
+              <p>
+                <b>Status:</b>
+                ${linkedJob.status || 'Requested'}
+              </p>
+
+              <p>
+                <b>Quote:</b>
+                ${linkedJob.quotedPrice
+                  ? '£' + linkedJob.quotedPrice
+                  : 'Awaiting quote'}
+              </p>
+
+              <p>
+                <b>Booked Date:</b>
+                ${linkedJob.bookedDate || 'Not booked'}
+              </p>
+
+              <p>
+                <b>Booked Time:</b>
+                ${linkedJob.bookedTime || '-'}
+              </p>
+
+              <p>
+                <b>Contractor Notes:</b><br>
+                ${linkedJob.contractorNotes || 'None'}
+              </p>
+            ` : `
+              <p>
+                <b>Contractor:</b>
+                Not assigned
+              </p>
+            `}
+
+            <p>
+              ${m.notes || ''}
+            </p>
+
+            <p>
+              <a href="/api/maintenance/${m.id}/pdf" target="_blank">
+                Download PDF Report
+              </a>
+            </p>
+
+            ${!linkedJob ? `
+              <button onclick="openMaintenanceContractorModal('${m.id}')">
+                Send to Contractor
+              </button>
+            ` : ''}
+
           </div>
         `;
+
       }).join('') || '<p class="muted">No maintenance reports yet.</p>'}
+
     </div>
 
     <div class="card span6">
+
       <h2>Report an Issue</h2>
+
       <form id="maintForm" enctype="multipart/form-data">
+
         <div class="field">
           <select name="propertyId">
-            ${state.data.properties.map(p=>`<option value="${p.id}">${p.address}</option>`).join('')}
+            ${state.data.properties.map(p=>
+              `<option value="${p.id}">${p.address}</option>`
+            ).join('')}
           </select>
         </div>
 
@@ -971,8 +1060,11 @@ function maintenance(){
         </div>
 
         <button>Submit</button>
+
       </form>
+
     </div>
+
   </div>`;
 }
 
