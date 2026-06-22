@@ -921,31 +921,143 @@ function maintenance(){
     <div class="card span6">
       <h2>Maintenance Reports</h2>
       <p><button onclick="openTenantLink()">Create Tenant Maintenance Link</button></p>
-      ${state.data.maintenance.map(m=>{
-        const p=state.data.properties.find(x=>x.id===m.propertyId);
+
+      ${(state.data.maintenance || []).map(m=>{
+        const p = state.data.properties.find(x=>x.id===m.propertyId);
         return `
-        <div class="card">
-          <b>${m.title}</b>
-          <p>${p?.address||''}</p>
-          <p>${m.priority} priority • ${m.status}</p>
-          <p>${m.notes||''}</p>
-          <p><a href="/api/maintenance/${m.id}/pdf" target="_blank">Download PDF Report</a></p>
-        </div>`;
-      }).join('')}
+          <div class="card">
+            <h3>${m.title}</h3>
+            <p><b>Property:</b> ${p?.address || m.propertyAddress || ''}</p>
+            <p><b>Priority:</b> ${m.priority} | <b>Status:</b> ${m.status}</p>
+            <p>${m.notes || ''}</p>
+            <p><a href="/api/maintenance/${m.id}/pdf" target="_blank">Download PDF Report</a></p>
+
+            <button onclick="openMaintenanceContractorModal('${m.id}')">
+              Send to Contractor
+            </button>
+          </div>
+        `;
+      }).join('') || '<p class="muted">No maintenance reports yet.</p>'}
     </div>
 
     <div class="card span6">
       <h2>Report an Issue</h2>
       <form id="maintForm" enctype="multipart/form-data">
-        <div class="field"><select name="propertyId">${state.data.properties.map(p=>`<option value="${p.id}">${p.address}</option>`)}</select></div>
-        <div class="field"><input name="title" placeholder="Issue title"></div>
-        <div class="field"><select name="priority"><option>Low</option><option>Medium</option><option>High</option><option>Urgent</option></select></div>
-        <div class="field"><textarea name="notes" placeholder="Details"></textarea></div>
-        <div class="field"><input type="file" name="photos" multiple accept="image/*"></div>
+        <div class="field">
+          <select name="propertyId">
+            ${state.data.properties.map(p=>`<option value="${p.id}">${p.address}</option>`).join('')}
+          </select>
+        </div>
+
+        <div class="field">
+          <input name="title" placeholder="Issue title">
+        </div>
+
+        <div class="field">
+          <select name="priority">
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+            <option>Urgent</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <textarea name="notes" placeholder="Details"></textarea>
+        </div>
+
+        <div class="field">
+          <input type="file" name="photos" multiple accept="image/*">
+        </div>
+
         <button>Submit</button>
       </form>
     </div>
   </div>`;
+}
+
+function openMaintenanceContractorModal(maintenanceId){
+  const m = (state.data.maintenance || []).find(x=>x.id===maintenanceId);
+  if(!m){
+    alert('Maintenance report not found');
+    return;
+  }
+
+  const p = state.data.properties.find(x=>x.id===m.propertyId);
+  const contractors = state.data.contractors || [];
+
+  modal(`
+    <h2>Send Maintenance Report to Contractor</h2>
+
+    <p><b>Property:</b> ${p?.address || m.propertyAddress || ''}</p>
+    <p><b>Issue:</b> ${m.title}</p>
+    <p>${m.notes || ''}</p>
+
+    <form id="maintenanceContractorForm">
+      <input type="hidden" name="propertyId" value="${m.propertyId}">
+      <input type="hidden" name="complianceType" value="Maintenance">
+      <input type="hidden" name="maintenanceId" value="${m.id}">
+
+      <div class="field">
+        <label>Contractor</label>
+        <select name="contractorId" required>
+          <option value="">Select contractor</option>
+          ${contractors.map(c=>`
+            <option value="${c.id}">
+              ${c.company} - ${c.trade}
+            </option>
+          `).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Message to contractor</label>
+        <textarea name="message" rows="8">Maintenance issue reported.
+
+Property: ${p?.address || m.propertyAddress || ''}
+Issue: ${m.title}
+Priority: ${m.priority}
+
+Details:
+${m.notes || ''}
+
+Please provide quote, availability and completion evidence.</textarea>
+      </div>
+
+      <button>Create Contractor Job Link</button>
+      <button type="button" class="btn2" onclick="closeModal()">Cancel</button>
+    </form>
+  `);
+
+  $('#maintenanceContractorForm').onsubmit = async e => {
+    e.preventDefault();
+
+    const fd = Object.fromEntries(new FormData(e.target));
+    const contractor = contractors.find(c=>c.id===fd.contractorId);
+
+    fd.contractorName = contractor?.company || '';
+    fd.contractorEmail = contractor?.email || '';
+    fd.landlordName = state.user.name || '';
+    fd.landlordEmail = state.user.email || '';
+    fd.landlordCompany = state.user.name || '';
+
+    const r = await api('/api/contractor-jobs',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(fd)
+    });
+
+    closeModal();
+    await load();
+
+    modal(`
+      <h2>Contractor Job Created</h2>
+      <p>Send this link to the contractor:</p>
+      <input value="${location.origin}${r.contractorLink}" onclick="this.select()" style="width:100%">
+      <p><a href="${r.contractorLink}" target="_blank">Open contractor job link</a></p>
+      <button onclick="closeModal();render()">Close</button>
+    `);
+  };
 }
 
 function premium(){
