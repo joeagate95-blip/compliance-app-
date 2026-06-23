@@ -52,7 +52,7 @@ button:disabled{background:#999;cursor:not-allowed}
 <label>Contractor Notes</label>
 <textarea id="contractorNotes" name="contractorNotes" rows="5"></textarea>
 
-<button id="saveUpdateBtn" type="button">Save Status / Quote Update</button>
+<button id="saveUpdateBtn" type="button" onclick="saveStatusUpdate()">Save Status / Quote Update</button>
 
 <hr>
 
@@ -111,12 +111,8 @@ async function loadJob(){
     }
 
     const reportLink = job.maintenanceReportUrl
-        ? `
-          <p><strong>Tenant Maintenance Report:</strong><br>
-          <a class="report-link" href="${job.maintenanceReportUrl}" target="_blank">
-            View / Download Report
-          </a></p>
-        `
+        ? `<p><strong>Tenant Maintenance Report:</strong><br>
+        <a class="report-link" href="${job.maintenanceReportUrl}" target="_blank">View / Download Report</a></p>`
         : "";
 
     document.getElementById("jobDetails").innerHTML = `
@@ -140,14 +136,12 @@ async function loadJob(){
     validateCompletionFields();
 }
 
-["issueDate","expiryDate","certificate"].forEach(id=>{
-    document.getElementById(id).addEventListener("change",validateCompletionFields);
-    document.getElementById(id).addEventListener("input",validateCompletionFields);
-});
+async function saveStatusUpdate(){
+    const message = document.getElementById("message");
+    message.className = "success";
+    message.innerHTML = "Saving update...";
 
-document.getElementById("saveUpdateBtn").addEventListener("click", async function(){
     const formData = new FormData();
-
     formData.append("status", document.getElementById("status").value);
     formData.append("quotedPrice", document.getElementById("quotedPrice").value);
     formData.append("bookedDate", document.getElementById("bookedDate").value);
@@ -162,15 +156,20 @@ document.getElementById("saveUpdateBtn").addEventListener("click", async functio
     const result = await response.json();
 
     if(!response.ok){
-        document.getElementById("message").className = "error";
-        document.getElementById("message").innerHTML = result.error || "There was a problem saving the update.";
+        message.className = "error";
+        message.innerHTML = result.error || "There was a problem saving the update.";
         return;
     }
 
-    document.getElementById("message").className = "success";
-    document.getElementById("message").innerHTML = "Job update saved successfully.";
+    message.className = "success";
+    message.innerHTML = "Job update saved successfully.";
 
-    loadJob();
+    await loadJob();
+}
+
+["issueDate","expiryDate","certificate"].forEach(id=>{
+    document.getElementById(id).addEventListener("change",validateCompletionFields);
+    document.getElementById(id).addEventListener("input",validateCompletionFields);
 });
 
 document.getElementById("updateForm").addEventListener("submit", async function(e){
@@ -215,7 +214,7 @@ document.getElementById("updateForm").addEventListener("submit", async function(
     document.getElementById("message").innerHTML =
         "Job completed successfully. Certificate has been uploaded to the property compliance folder.";
 
-    loadJob();
+    await loadJob();
 });
 
 loadJob();
