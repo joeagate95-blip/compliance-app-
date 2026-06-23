@@ -644,68 +644,84 @@ ${landlordName}`;
 }
 
 function contractorCentre(){
-  const jobs = state.data.contractorJobs || [];
+  const allJobs = state.data.contractorJobs || [];
+  const jobs = state.user.role === 'contractor'
+    ? allJobs.filter(j =>
+        j.contractorEmail === state.user.email ||
+        j.contractorId === state.user.id
+      )
+    : allJobs;
 
   if(state.user.role === 'contractor'){
     return `
     <div class="grid">
       <div class="card span12">
         <h2>Contractor Jobs</h2>
+        <p class="muted">These are jobs assigned to you. Use the job link to quote, book in, update notes and upload completion evidence.</p>
+
         <table>
           <tr>
             <th>Property</th>
             <th>Job</th>
             <th>Landlord / Agent</th>
             <th>Status</th>
+            <th>Quote Decision</th>
             <th>Booked</th>
             <th>Quote</th>
             <th>Action</th>
           </tr>
+
           ${jobs.map(j=>`
             <tr>
-              <td>${j.propertyAddress||''}</td>
-              <td>${j.complianceType||''}</td>
+              <td>${j.propertyAddress || ''}</td>
+              <td>${j.complianceType || ''}</td>
               <td>
                 <b>${j.landlordCompany || j.landlordName || ''}</b><br>
                 ${j.landlordEmail || ''}<br>
                 ${j.landlordPhone || ''}
               </td>
-              <td>${j.status||'Requested'}</td>
-              <td>${j.bookedDate?`${j.bookedDate} ${j.bookedTime||''}`:'Not booked'}</td>
-              <td>${j.quotedPrice?`£${j.quotedPrice}`:'Not provided'}</td>
-              <td><button class="btn2" onclick="openLandlordContractorJob('${j.id}')">
-  View / Decision
-</button></td>
+              <td><span class="pill">${j.status || 'Requested'}</span></td>
+              <td>${j.quoteStatus || 'Not submitted'}</td>
+              <td>${j.bookedDate ? `${j.bookedDate} ${j.bookedTime || ''}` : 'Not booked'}</td>
+              <td>${j.quotedPrice ? `£${j.quotedPrice}` : 'Not provided'}</td>
+              <td>
+                <button class="btn2" onclick="showJobLink('${j.token}')">
+                  Open Contractor Job
+                </button>
+              </td>
             </tr>
-          `).join('') || '<tr><td colspan="7">No contractor jobs assigned to you yet.</td></tr>'}
+          `).join('') || '<tr><td colspan="8">No contractor jobs assigned to you yet.</td></tr>'}
         </table>
       </div>
     </div>`;
   }
 
-  const types=['Gas Safety','EICR','PAT Testing','EPC','Legionella','Smoke & CO Alarms'];
-  const contractors=state.data.contractors||[];
+  const types = ['Gas Safety','EICR','PAT Testing','EPC','Legionella','Smoke & CO Alarms'];
+  const contractors = state.data.contractors || [];
 
   return `
   <div class="grid">
 
     <div class="card span12">
-      <h2>Contractor Centre</h2>
-      <p class="muted">Manage approved contractors, create ready-made contractor messages, send job links, and track quote/booked/completed jobs.</p>
+      <h2>Landlord Contractor Centre</h2>
+      <p class="muted">
+        Manage contractors, create job requests, review quotes, accept/reject quotes, add landlord comments and book jobs manually.
+      </p>
       <button onclick="openContractorJobModal()">Create Contractor Job / Quote Request</button>
     </div>
 
     <div class="card span12">
       <h2>Approved Contractors</h2>
       <p class="muted">Saved contractors for gas, electrical, EPC, legionella and general property compliance.</p>
+
       <div class="grid">
         ${contractors.map(c=>`
           <div class="card span4">
             <h2>${c.company}</h2>
             <p><span class="pill">${c.trade}</span></p>
-            <p>${c.contactName||''}<br>${c.email||''}<br>${c.phone||''}</p>
-            <p><b>${c.accreditation||''}</b></p>
-            <p class="green">${c.approved?'Approved':'Not approved'}</p>
+            <p>${c.contactName || ''}<br>${c.email || ''}<br>${c.phone || ''}</p>
+            <p><b>${c.accreditation || ''}</b></p>
+            <p class="green">${c.approved ? 'Approved' : 'Not approved'}</p>
           </div>
         `).join('') || '<p class="muted">No approved contractors added yet.</p>'}
       </div>
@@ -727,6 +743,7 @@ function contractorCentre(){
     <div class="card span12">
       <h2>Ready-Made Contractor Templates</h2>
       <p class="muted">Click a template to copy a message you can email, text or WhatsApp to an approved contractor.</p>
+
       <div class="grid">
         ${types.map(t=>`
           <div class="card span4">
@@ -740,27 +757,38 @@ function contractorCentre(){
 
     <div class="card span12">
       <h2>Contractor Jobs</h2>
+      <p class="muted">
+        This is the landlord management view. Use View / Decision to review quotes, accept/reject, comment, or book manually.
+      </p>
+
       <table>
         <tr>
           <th>Property</th>
           <th>Job</th>
           <th>Contractor</th>
           <th>Status</th>
-          <th>Booked</th>
+          <th>Quote Decision</th>
+          <th>Booking / Availability</th>
           <th>Quote</th>
-          <th>Link</th>
+          <th>Action</th>
         </tr>
+
         ${jobs.map(j=>`
           <tr>
-            <td>${j.propertyAddress||''}</td>
-            <td>${j.complianceType||''}</td>
-            <td>${j.contractorName||j.contractorEmail||''}</td>
-            <td><span class="pill">${j.status||'Requested'}</span></td>
-            <td>${j.bookedDate?`${j.bookedDate} ${j.bookedTime||''}`:'Not booked'}</td>
-            <td>${j.quotedPrice?`£${j.quotedPrice}`:'Not provided'}</td>
-            <td><button class="btn2" onclick="showJobLink('${j.token}')">View Link</button></td>
+            <td>${j.propertyAddress || ''}</td>
+            <td>${j.complianceType || ''}</td>
+            <td>${j.contractorName || j.contractorEmail || ''}</td>
+            <td><span class="pill">${j.status || 'Requested'}</span></td>
+            <td>${j.quoteStatus || 'Awaiting quote'}</td>
+            <td>${j.bookedDate ? `${j.bookedDate} ${j.bookedTime || ''}` : 'Not booked'}</td>
+            <td>${j.quotedPrice ? `£${j.quotedPrice}` : 'Not provided'}</td>
+            <td>
+              <button class="btn2" onclick="openLandlordContractorJob('${j.id}')">
+                View / Decision
+              </button>
+            </td>
           </tr>
-        `).join('') || '<tr><td colspan="7">No contractor jobs created yet.</td></tr>'}
+        `).join('') || '<tr><td colspan="8">No contractor jobs created yet.</td></tr>'}
       </table>
     </div>
 
@@ -768,27 +796,33 @@ function contractorCentre(){
 }
 
 function copySimpleTemplate(type){
-  const property=state.data.properties[0];
-  const contractor=state.data.contractors[0];
-  const txt=contractorTemplate(type,property,contractor);
+  const property = state.data.properties[0];
+  const contractor = state.data.contractors[0];
+  const txt = contractorTemplate(type, property, contractor);
   navigator.clipboard.writeText(txt);
   alert('Template copied.');
 }
 
-function openContractorJobModal(propertyId='',type='Gas Safety'){
-  const properties=state.data.properties||[];
-  const contractors=state.data.contractors||[];
-  const jobTypes=['Gas Safety','EICR','PAT Testing','EPC','Legionella','Smoke & CO Alarms','Fire Safety'];
+function openContractorJobModal(propertyId='', type='Gas Safety'){
+  const properties = state.data.properties || [];
+  const contractors = state.data.contractors || [];
+  const jobTypes = ['Gas Safety','EICR','PAT Testing','EPC','Legionella','Smoke & CO Alarms','Fire Safety','Maintenance'];
 
   modal(`
     <h2>Create Contractor Job / Quote Request</h2>
-    <p class="muted">This creates a contractor link. The contractor can update quote, booked date, status and notes.</p>
+    <p class="muted">
+      This creates a contractor-side job link. The contractor can quote, update status, book in and upload completion evidence.
+    </p>
 
     <form id="contractorJobForm">
       <div class="field">
         <label>Property</label>
         <select name="propertyId" id="jobProperty">
-          ${properties.map(p=>`<option value="${p.id}" ${p.id===propertyId?'selected':''}>${p.address}</option>`).join('')}
+          ${properties.map(p=>`
+            <option value="${p.id}" ${p.id===propertyId?'selected':''}>
+              ${p.address}
+            </option>
+          `).join('')}
         </select>
       </div>
 
@@ -796,29 +830,43 @@ function openContractorJobModal(propertyId='',type='Gas Safety'){
         <label>Contractor</label>
         <select name="contractorId" id="jobContractor">
           <option value="">Select contractor</option>
-          ${contractors.map(c=>`<option value="${c.id}">${c.company} - ${c.trade}</option>`).join('')}
+          ${contractors.map(c=>`
+            <option value="${c.id}">
+              ${c.company} - ${c.trade}
+            </option>
+          `).join('')}
         </select>
       </div>
 
       <div class="field">
         <label>Job Type</label>
         <select name="complianceType" id="jobType">
-          ${jobTypes.map(t=>`<option ${t===type?'selected':''}>${t}</option>`).join('')}
+          ${jobTypes.map(t=>`
+            <option ${t===type?'selected':''}>${t}</option>
+          `).join('')}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Share tenant details with contractor?</label>
+        <select name="shareTenantDetails">
+          <option value="no">No - landlord will manage tenant contact</option>
+          <option value="yes">Yes - contractor can see tenant/job details if provided</option>
         </select>
       </div>
 
       <div class="field">
         <label>Landlord Phone</label>
-        <input name="landlordPhone" placeholder="Phone number for certificate">
+        <input name="landlordPhone" placeholder="Phone number for contractor">
       </div>
 
       <div class="field">
         <label>Landlord Company Name</label>
-        <input name="landlordCompany" placeholder="Company name for certificate">
+        <input name="landlordCompany" placeholder="Company name">
       </div>
 
       <div class="field">
-        <label>Message to contractor</label>
+        <label>Message / Job Sheet for Contractor</label>
         <textarea name="message" id="jobMessage" rows="8"></textarea>
       </div>
 
@@ -830,21 +878,22 @@ function openContractorJobModal(propertyId='',type='Gas Safety'){
 
   fillJobTemplate();
 
-  $('#contractorJobForm').onsubmit=async e=>{
+  $('#contractorJobForm').onsubmit = async e => {
     e.preventDefault();
 
-    const fd=Object.fromEntries(new FormData(e.target));
-    const contractor=contractors.find(c=>c.id===fd.contractorId);
+    const fd = Object.fromEntries(new FormData(e.target));
+    const contractor = contractors.find(c => c.id === fd.contractorId);
 
-  fd.contractorName = contractor?.company || '';
-fd.contractorEmail = contractor?.email || '';
+    fd.contractorName = contractor?.company || '';
+    fd.contractorEmail = contractor?.email || '';
+    fd.landlordName = state.user.name || '';
+    fd.landlordEmail = state.user.email || '';
+    fd.landlordPhone = fd.landlordPhone || '';
+    fd.landlordCompany = fd.landlordCompany || state.user.name || '';
+    fd.quoteStatus = 'Awaiting quote';
+    fd.landlordManagedBooking = fd.shareTenantDetails === 'no';
 
-fd.landlordName = state.user.name || '';
-fd.landlordEmail = state.user.email || '';
-fd.landlordPhone = fd.landlordPhone || '';
-fd.landlordCompany = fd.landlordCompany || state.user.name || '';
-
-    const r=await api('/api/contractor-jobs',{
+    const r = await api('/api/contractor-jobs',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(fd)
@@ -858,7 +907,10 @@ fd.landlordCompany = fd.landlordCompany || state.user.name || '';
       <p>Send this link to the contractor:</p>
       <input value="${r.contractorLink}" onclick="this.select()" style="width:100%">
       <p><a href="${r.contractorLink}" target="_blank">Open contractor job link</a></p>
-      <p class="muted">The contractor can update quote, booking date, status and notes.</p>
+      <p class="muted">
+        The contractor can quote, update availability and upload completion evidence. 
+        The landlord will manage quote decisions from the Contractor Centre.
+      </p>
       <button onclick="closeModal();state.view='contractorCentre';render()">Close</button>
     `);
   };
