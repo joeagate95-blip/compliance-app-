@@ -898,6 +898,12 @@ app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req
   const newStatus = req.body.status || job.status;
   const now = new Date();
 
+  if ((newStatus === 'Booked In' || newStatus === 'Completed') && job.quoteStatus !== 'Accepted') {
+    return res.status(403).json({
+      error: 'The landlord must accept the quote before this job can be booked or completed.'
+    });
+  }
+
   job.status = newStatus;
   job.quotedPrice = req.body.quotedPrice || job.quotedPrice;
   job.bookedDate = req.body.bookedDate || job.bookedDate;
@@ -905,8 +911,10 @@ app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req
   job.contractorNotes = req.body.contractorNotes || job.contractorNotes;
   job.updatedAt = now.toISOString();
 
-  if (newStatus === 'Quote Sent' && oldStatus !== 'Quote Sent') {
-    job.quoteSentAt = now.toISOString();
+  if (newStatus === 'Quote Sent') {
+    job.quoteStatus = 'Pending';
+    job.quoteSentAt = job.quoteSentAt || now.toISOString();
+    job.contractorNotification = 'Quote sent to landlord. Awaiting approval.';
   }
 
   if (newStatus === 'Booked In' && oldStatus !== 'Booked In') {
@@ -920,7 +928,7 @@ app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req
   if (newStatus === 'Completed' && req.file) {
     if (!req.body.issueDate || !req.body.expiryDate) {
       return res.status(400).json({
-        error: 'Issue date and expiry date are required when uploading a completed certificate.'
+        error: 'Issue date and expiry date are required when uploading completion evidence.'
       });
     }
 
@@ -947,6 +955,48 @@ app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req
   }
 
   audit(db, 'Contractor updated job for ' + job.propertyAddress, { email: 'contractor-link' });
+  write(db);
+
+  res.json({ success: true, job });
+});
+app.post('/api/contractor-jobs/:id/quote-decision', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  db.contractorJobs = db.contractorJobs || [];
+
+  const job = db.contractorJobs.find(j => j.id === req.params.id);
+
+  if (!job) {
+    return res.status(404).json({ error: 'Contractor job not found' });
+  }
+
+  const property = (db.properties || []).find(p => p.id === job.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access to this contractor job' });
+  }
+
+  const decision = req.body.decision;
+
+  if (!['Accepted', 'Rejected'].includes(decision)) {
+    return res.status(400).json({ error: 'Decision must be Accepted or Rejected' });
+  }
+
+  job.quoteStatus = decision;
+  job.quoteDecisionAt = new Date().toISOString();
+  job.quoteDecisionBy = user.email;
+  job.quoteDecisionNotes = req.body.notes || '';
+
+  if (decision === 'Accepted') {
+    job.contractorNotification = 'Quote accepted by landlord. You can now arrange booking.';
+  }
+
+  if (decision === 'Rejected') {
+    job.contractorNotification = 'Quote rejected by landlord. Please revise the quote or contact the landlord.';
+  }
+
+  audit(db, `${decision} contractor quote for ${job.propertyAddress}`, user);
   write(db);
 
   res.json({
