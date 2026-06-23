@@ -14,8 +14,9 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radiu
 button{background:#0057A8;color:white;border:none;padding:12px 20px;border-radius:6px;cursor:pointer;margin-right:8px;margin-bottom:8px}
 button:disabled{background:#999;cursor:not-allowed}
 .status{display:inline-block;padding:8px 12px;border-radius:6px;background:#e8f2ff;color:#0057A8;font-weight:bold}
-.success{color:green;margin-top:15px}
+.success{color:green;margin-top:15px;font-weight:bold}
 .error{color:red;margin-top:15px;font-weight:bold}
+.notice{background:#fff8e1;border:1px solid #f0d98c;padding:12px;border-radius:8px;margin:12px 0}
 .report-link{display:inline-block;background:#0057A8;color:#fff;text-decoration:none;padding:10px 14px;border-radius:6px;margin-top:8px}
 </style>
 </head>
@@ -74,7 +75,7 @@ button:disabled{background:#999;cursor:not-allowed}
 
 </form>
 
-<div id="message" class="error">
+<div id="message" class="notice">
 You can save quote/status updates without a certificate. Certificate is only required when completing the job.
 </div>
 </div>
@@ -82,6 +83,7 @@ You can save quote/status updates without a certificate. Certificate is only req
 
 <script>
 const token = window.location.pathname.split("/").pop();
+let currentJob = null;
 
 function validateCompletionFields(){
     const issueDate = document.getElementById("issueDate").value;
@@ -96,7 +98,7 @@ function validateCompletionFields(){
         message.innerHTML = "Ready to complete job and upload certificate.";
     } else {
         completeBtn.disabled = true;
-        message.className = "error";
+        message.className = "notice";
         message.innerHTML = "You can save quote/status updates without a certificate. Certificate is only required when completing the job.";
     }
 }
@@ -104,6 +106,7 @@ function validateCompletionFields(){
 async function loadJob(){
     const response = await fetch(`/api/contractor-job/${token}`);
     const job = await response.json();
+    currentJob = job;
 
     if(job.error){
         document.getElementById("jobDetails").innerHTML = "<p>Job not found.</p>";
@@ -113,6 +116,18 @@ async function loadJob(){
     const reportLink = job.maintenanceReportUrl
         ? `<p><strong>Tenant Maintenance Report:</strong><br>
         <a class="report-link" href="${job.maintenanceReportUrl}" target="_blank">View / Download Report</a></p>`
+        : "";
+
+    const quoteNotice = job.quoteStatus === "Pending"
+        ? `<p class="error">Quote awaiting landlord approval.</p>`
+        : job.quoteStatus === "Accepted"
+            ? `<p class="success">Quote accepted by landlord. You can now arrange booking.</p>`
+            : job.quoteStatus === "Rejected"
+                ? `<p class="error">Quote rejected by landlord. Please revise your quote or contact the landlord.</p>`
+                : "";
+
+    const contractorNotification = job.contractorNotification
+        ? `<p class="notice"><strong>Landlord Update:</strong><br>${job.contractorNotification}</p>`
         : "";
 
     document.getElementById("jobDetails").innerHTML = `
@@ -125,6 +140,8 @@ async function loadJob(){
         ${reportLink}
         <p><strong>Message:</strong><br>${job.message || ""}</p>
         <p><span class="status">${job.status || "Requested"}</span></p>
+        ${quoteNotice}
+        ${contractorNotification}
     `;
 
     document.getElementById("status").value = job.status || "Requested";
@@ -138,11 +155,19 @@ async function loadJob(){
 
 async function saveStatusUpdate(){
     const message = document.getElementById("message");
-    message.className = "success";
+    const selectedStatus = document.getElementById("status").value;
+
+    if((selectedStatus === "Booked In" || selectedStatus === "Completed") && currentJob.quoteStatus !== "Accepted"){
+        message.className = "error";
+        message.innerHTML = "The landlord must accept the quote before you can book in or complete this job.";
+        return;
+    }
+
+    message.className = "notice";
     message.innerHTML = "Saving update...";
 
     const formData = new FormData();
-    formData.append("status", document.getElementById("status").value);
+    formData.append("status", selectedStatus);
     formData.append("quotedPrice", document.getElementById("quotedPrice").value);
     formData.append("bookedDate", document.getElementById("bookedDate").value);
     formData.append("bookedTime", document.getElementById("bookedTime").value);
@@ -174,6 +199,13 @@ async function saveStatusUpdate(){
 
 document.getElementById("updateForm").addEventListener("submit", async function(e){
     e.preventDefault();
+
+    if(currentJob.quoteStatus !== "Accepted"){
+        document.getElementById("message").className = "error";
+        document.getElementById("message").innerHTML =
+            "The landlord must accept the quote before you can complete this job.";
+        return;
+    }
 
     const issueDate = document.getElementById("issueDate").value;
     const expiryDate = document.getElementById("expiryDate").value;
