@@ -980,15 +980,35 @@ function maintenance(){
                   : 'Awaiting quote'}
               </p>
 
-              <p>
-                <b>Booked Date:</b>
-                ${linkedJob.bookedDate || 'Not booked'}
-              </p>
+              ${linkedJob.status === 'Quote Sent' ? `
+  <p>
+    <b>Quote Received:</b>
+    ${linkedJob.quoteSentAt
+      ? new Date(linkedJob.quoteSentAt).toLocaleString()
+      : 'Quote received'}
+  </p>
+` : ''}
 
-              <p>
-                <b>Booked Time:</b>
-                ${linkedJob.bookedTime || '-'}
-              </p>
+${linkedJob.status === 'Booked In' ? `
+  <p>
+    <b>Booked Date:</b>
+    ${linkedJob.bookedDate || 'Not booked'}
+  </p>
+
+  <p>
+    <b>Booked Time:</b>
+    ${linkedJob.bookedTime || '-'}
+  </p>
+` : ''}
+
+${linkedJob.status === 'Completed' ? `
+  <p>
+    <b>Completed:</b>
+    ${linkedJob.completedAt
+      ? new Date(linkedJob.completedAt).toLocaleString()
+      : 'Completed'}
+  </p>
+` : ''}
 
               <p>
                 <b>Contractor Notes:</b><br>
