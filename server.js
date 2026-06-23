@@ -888,14 +888,34 @@ app.get('/api/contractor-job/:token', (req, res) => {
 
 app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req, res) => {
   const db = read();
-
   const job = (db.contractorJobs || []).find(j => j.token === req.params.token);
 
   if (!job) {
     return res.status(404).json({ error: 'Job not found' });
   }
 
+  const oldStatus = job.status;
   const newStatus = req.body.status || job.status;
+  const now = new Date();
+
+  job.status = newStatus;
+  job.quotedPrice = req.body.quotedPrice || job.quotedPrice;
+  job.bookedDate = req.body.bookedDate || job.bookedDate;
+  job.bookedTime = req.body.bookedTime || job.bookedTime;
+  job.contractorNotes = req.body.contractorNotes || job.contractorNotes;
+  job.updatedAt = now.toISOString();
+
+  if (newStatus === 'Quote Sent' && oldStatus !== 'Quote Sent') {
+    job.quoteSentAt = now.toISOString();
+  }
+
+  if (newStatus === 'Booked In' && oldStatus !== 'Booked In') {
+    job.bookedInAt = now.toISOString();
+  }
+
+  if (newStatus === 'Completed' && oldStatus !== 'Completed') {
+    job.completedAt = now.toISOString();
+  }
 
   if (newStatus === 'Completed' && req.file) {
     if (!req.body.issueDate || !req.body.expiryDate) {
@@ -903,21 +923,14 @@ app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req
         error: 'Issue date and expiry date are required when uploading a completed certificate.'
       });
     }
-  }
 
-  job.status = newStatus;
-  job.quotedPrice = req.body.quotedPrice || job.quotedPrice;
-  job.bookedDate = req.body.bookedDate || job.bookedDate;
-  job.bookedTime = req.body.bookedTime || job.bookedTime;
-  job.contractorNotes = req.body.contractorNotes || job.contractorNotes;
-  job.updatedAt = new Date().toISOString();
+    db.documents = db.documents || [];
 
-  if (req.file && job.status === 'Completed') {
     const document = {
       id: uuid(),
       propertyId: job.propertyId,
-      category: job.complianceType || 'Gas Safety',
-      title: `${job.complianceType || 'Compliance'} Certificate`,
+      category: job.complianceType || 'Maintenance',
+      title: `${job.complianceType || 'Maintenance'} Completion Evidence`,
       issueDate: req.body.issueDate,
       expiryDate: req.body.expiryDate,
       status: 'Valid',
