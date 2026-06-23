@@ -673,7 +673,9 @@ function contractorCentre(){
               <td>${j.status||'Requested'}</td>
               <td>${j.bookedDate?`${j.bookedDate} ${j.bookedTime||''}`:'Not booked'}</td>
               <td>${j.quotedPrice?`£${j.quotedPrice}`:'Not provided'}</td>
-              <td><button class="btn2" onclick="showJobLink('${j.token}')">Open Job</button></td>
+              <td><button class="btn2" onclick="openLandlordContractorJob('${j.id}')">
+  View / Decision
+</button></td>
             </tr>
           `).join('') || '<tr><td colspan="7">No contractor jobs assigned to you yet.</td></tr>'}
         </table>
