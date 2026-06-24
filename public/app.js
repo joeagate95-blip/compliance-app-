@@ -985,17 +985,41 @@ function openContractorJobModal(propertyId='', type='Gas Safety'){
     closeModal();
     await load();
 
-    modal(`
-      <h2>Contractor Job Created</h2>
-      <p>Send this link to the contractor:</p>
-      <input value="${r.contractorLink}" onclick="this.select()" style="width:100%">
-      <p><a href="${r.contractorLink}" target="_blank">Open contractor job link</a></p>
-      <p class="muted">
-        The contractor can quote, update availability and upload completion evidence. 
-        The landlord will manage quote decisions from the Contractor Centre.
-      </p>
-      <button onclick="closeModal();state.view='contractorCentre';render()">Close</button>
-    `);
+   modal(`
+  <h2>Contractor Job Created</h2>
+
+  <p>
+    Contractor link generated successfully.
+  </p>
+
+  <p>
+    Share this link with the contractor. They do not need a full account to update this job.
+  </p>
+
+  <input
+    value="${r.contractorLink}"
+    onclick="this.select()"
+    style="width:100%"
+  >
+
+  <br><br>
+
+  <button
+    onclick="
+      navigator.clipboard.writeText('${r.contractorLink}');
+      alert('Contractor link copied');
+    "
+  >
+    Copy Link
+  </button>
+
+  <button
+    class="btn2"
+    onclick="closeModal();state.view='contractorCentre';render()"
+  >
+    Close
+  </button>
+`);
   };
 }
 
