@@ -794,7 +794,90 @@ function contractorCentre(){
 
   </div>`;
 }
+async function openLandlordContractorJob(jobId){
+  const job = (state.data.contractorJobs || []).find(j => j.id === jobId);
 
+  if(!job){
+    alert('Contractor job not found');
+    return;
+  }
+
+  modal(`
+    <h2>Landlord Job Decision</h2>
+
+    <p><b>Property:</b> ${job.propertyAddress || ''}</p>
+    <p><b>Job:</b> ${job.complianceType || ''}</p>
+    <p><b>Contractor:</b> ${job.contractorName || job.contractorEmail || ''}</p>
+    <p><b>Status:</b> ${job.status || 'Requested'}</p>
+    <p><b>Quote:</b> ${job.quotedPrice ? '£' + job.quotedPrice : 'Not provided'}</p>
+    <p><b>Quote Decision:</b> ${job.quoteStatus || 'Awaiting quote'}</p>
+
+    ${job.maintenanceReportUrl ? `
+      <p>
+        <a href="${job.maintenanceReportUrl}" target="_blank">
+          View / Download Job Sheet
+        </a>
+      </p>
+    ` : ''}
+
+    <div class="field">
+      <label>Landlord comments for contractor</label>
+      <textarea id="landlordJobNotes" rows="5">${job.quoteDecisionNotes || ''}</textarea>
+    </div>
+
+    <div class="field">
+      <label>Manual booked date</label>
+      <input type="date" id="landlordBookedDate" value="${job.bookedDate || ''}">
+    </div>
+
+    <div class="field">
+      <label>Manual booked time</label>
+      <input type="time" id="landlordBookedTime" value="${job.bookedTime || ''}">
+    </div>
+
+    <button onclick="landlordQuoteDecision('${job.id}', 'Accepted')">Accept Quote</button>
+    <button class="btn2" onclick="landlordQuoteDecision('${job.id}', 'Rejected')">Reject Quote</button>
+    <button class="btn2" onclick="landlordSaveBooking('${job.id}')">Save Booking / Comment</button>
+    <button class="btn2" onclick="closeModal()">Close</button>
+  `);
+}
+
+async function landlordQuoteDecision(jobId, decision){
+  const notes = document.getElementById('landlordJobNotes')?.value || '';
+
+  await api(`/api/contractor-jobs/${jobId}/quote-decision`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({ decision, notes })
+  });
+
+  await load();
+  closeModal();
+  state.view = 'contractorCentre';
+  render();
+}
+
+async function landlordSaveBooking(jobId){
+  const bookedDate = document.getElementById('landlordBookedDate')?.value || '';
+  const bookedTime = document.getElementById('landlordBookedTime')?.value || '';
+  const notes = document.getElementById('landlordJobNotes')?.value || '';
+
+  await api(`/api/contractor-jobs/${jobId}/quote-decision`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      decision: 'Accepted',
+      notes,
+      bookedDate,
+      bookedTime
+    })
+  });
+
+  await load();
+  closeModal();
+  state.view = 'contractorCentre';
+  render();
+}
 function copySimpleTemplate(type){
   const property = state.data.properties[0];
   const contractor = state.data.contractors[0];
