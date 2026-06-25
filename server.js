@@ -971,6 +971,8 @@ app.post('/api/contractor-job/:token/slots', (req, res) => {
   }
 
   const slots = req.body.appointmentSlots || [];
+  const slotsExpiryDate = req.body.slotsExpiryDate || '';
+  const slotsExpiryTime = req.body.slotsExpiryTime || '';
 
   if (!Array.isArray(slots) || slots.length === 0) {
     return res.status(400).json({ error: 'At least one appointment slot is required.' });
@@ -980,6 +982,26 @@ app.post('/api/contractor-job/:token/slots', (req, res) => {
     return res.status(400).json({ error: 'Maximum of 5 appointment slots allowed.' });
   }
 
+  if (!slotsExpiryDate || !slotsExpiryTime) {
+    return res.status(400).json({
+      error: 'Tenant response deadline date and time are required.'
+    });
+  }
+
+  const expiryAt = new Date(`${slotsExpiryDate}T${slotsExpiryTime}`);
+
+  if (isNaN(expiryAt.getTime())) {
+    return res.status(400).json({
+      error: 'Invalid tenant response deadline.'
+    });
+  }
+
+  if (expiryAt <= new Date()) {
+    return res.status(400).json({
+      error: 'Tenant response deadline must be in the future.'
+    });
+  }
+
   job.appointmentSlots = slots.map((slot, index) => ({
     id: slot.id || uuid(),
     slotNumber: index + 1,
@@ -987,13 +1009,17 @@ app.post('/api/contractor-job/:token/slots', (req, res) => {
     type: slot.type || '',
     startTime: slot.startTime || '',
     endTime: slot.endTime || '',
-    status: slot.status || 'Proposed',
+    status: 'Proposed',
     proposedBy: 'contractor',
     proposedAt: new Date().toISOString()
   }));
 
+  job.slotsExpiryDate = slotsExpiryDate;
+  job.slotsExpiryTime = slotsExpiryTime;
+  job.slotsExpiryAt = expiryAt.toISOString();
+
   job.bookingStatus = 'Slots Proposed';
-  job.contractorNotification = 'Appointment slots sent. Awaiting tenant or landlord selection.';
+  job.contractorNotification = 'Appointment slots sent. Awaiting tenant or landlord selection before the deadline.';
   job.updatedAt = new Date().toISOString();
 
   audit(db, 'Contractor proposed appointment slots for ' + job.propertyAddress, { email: 'contractor-link' });
