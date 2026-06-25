@@ -959,6 +959,51 @@ app.post('/api/contractor-job/:token/update', upload.single('certificate'), (req
 
   res.json({ success: true, job });
 });
+app.post('/api/contractor-job/:token/slots', (req, res) => {
+  const db = read();
+
+  db.contractorJobs = db.contractorJobs || [];
+
+  const job = db.contractorJobs.find(j => j.token === req.params.token);
+
+  if (!job) {
+    return res.status(404).json({ error: 'Job not found' });
+  }
+
+  const slots = req.body.appointmentSlots || [];
+
+  if (!Array.isArray(slots) || slots.length === 0) {
+    return res.status(400).json({ error: 'At least one appointment slot is required.' });
+  }
+
+  if (slots.length > 5) {
+    return res.status(400).json({ error: 'Maximum of 5 appointment slots allowed.' });
+  }
+
+  job.appointmentSlots = slots.map((slot, index) => ({
+    id: slot.id || uuid(),
+    slotNumber: index + 1,
+    date: slot.date || '',
+    type: slot.type || '',
+    startTime: slot.startTime || '',
+    endTime: slot.endTime || '',
+    status: slot.status || 'Proposed',
+    proposedBy: 'contractor',
+    proposedAt: new Date().toISOString()
+  }));
+
+  job.bookingStatus = 'Slots Proposed';
+  job.contractorNotification = 'Appointment slots sent. Awaiting tenant or landlord selection.';
+  job.updatedAt = new Date().toISOString();
+
+  audit(db, 'Contractor proposed appointment slots for ' + job.propertyAddress, { email: 'contractor-link' });
+  write(db);
+
+  res.json({
+    success: true,
+    job
+  });
+});
 app.post('/api/contractor-jobs/:id/quote-decision', auth, (req, res) => {
   const db = read();
   const user = currentUser(req);
