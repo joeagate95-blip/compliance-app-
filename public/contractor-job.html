@@ -18,6 +18,9 @@ button:disabled{background:#999;cursor:not-allowed}
 .error{color:red;margin-top:15px;font-weight:bold}
 .notice{background:#fff8e1;border:1px solid #f0d98c;padding:12px;border-radius:8px;margin:12px 0}
 .report-link{display:inline-block;background:#0057A8;color:#fff;text-decoration:none;padding:10px 14px;border-radius:6px;margin-top:8px}
+.slot{border:1px solid #d9e6f5;background:#fff;border-radius:10px;padding:15px;margin-bottom:15px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -55,9 +58,31 @@ button:disabled{background:#999;cursor:not-allowed}
 
 <button id="saveUpdateBtn" type="button" onclick="saveStatusUpdate()">Save Status / Quote Update</button>
 
-<hr>
+</form>
 
+<div id="message" class="notice">
+You can save quote/status updates without a certificate. Certificate is only required when completing the job.
+</div>
+</div>
+
+<div class="card">
+<h2>Propose Appointment Slots</h2>
+<p class="notice">Offer up to 5 appointment options for the tenant or landlord to choose from.</p>
+
+<div id="existingSlots"></div>
+
+<form id="slotsForm">
+<div id="slotsContainer"></div>
+<button type="button" onclick="saveAppointmentSlots()">Save Proposed Appointment Slots</button>
+</form>
+
+<div id="slotMessage"></div>
+</div>
+
+<div class="card">
 <h2>Completed Certificate Upload</h2>
+
+<form id="certificateForm" enctype="multipart/form-data">
 
 <label>Certificate Issue Date REQUIRED</label>
 <input type="date" id="issueDate" name="issueDate">
@@ -74,10 +99,6 @@ button:disabled{background:#999;cursor:not-allowed}
 <button id="completeBtn" type="submit" disabled>Complete Job & Upload Certificate</button>
 
 </form>
-
-<div id="message" class="notice">
-You can save quote/status updates without a certificate. Certificate is only required when completing the job.
-</div>
 </div>
 </div>
 
@@ -85,22 +106,86 @@ You can save quote/status updates without a certificate. Certificate is only req
 const token = window.location.pathname.split("/").pop();
 let currentJob = null;
 
+function slotLabel(slot){
+    if(!slot || !slot.date) return "";
+    if(slot.type === "AM") return `${slot.date} - AM slot`;
+    if(slot.type === "PM") return `${slot.date} - PM slot`;
+    return `${slot.date} - ${slot.startTime || ""} to ${slot.endTime || ""}`;
+}
+
+function renderSlotInputs(){
+    const container = document.getElementById("slotsContainer");
+    container.innerHTML = "";
+
+    for(let i=1;i<=5;i++){
+        container.innerHTML += `
+            <div class="slot">
+                <h3>Slot ${i}</h3>
+
+                <label>Date</label>
+                <input type="date" id="slotDate${i}">
+
+                <label>Slot Type</label>
+                <select id="slotType${i}" onchange="toggleCustomTimes(${i})">
+                    <option value="">Select slot type</option>
+                    <option value="AM">AM slot</option>
+                    <option value="PM">PM slot</option>
+                    <option value="Custom">Custom time slot</option>
+                </select>
+
+                <div class="grid2" id="customTimeBox${i}" style="display:none">
+                    <div>
+                        <label>Start Time</label>
+                        <input type="time" id="slotStart${i}">
+                    </div>
+                    <div>
+                        <label>End Time</label>
+                        <input type="time" id="slotEnd${i}">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function toggleCustomTimes(i){
+    const type = document.getElementById(`slotType${i}`).value;
+    document.getElementById(`customTimeBox${i}`).style.display = type === "Custom" ? "grid" : "none";
+}
+
+function populateExistingSlots(job){
+    const slots = job.appointmentSlots || [];
+    const existing = document.getElementById("existingSlots");
+
+    if(!slots.length){
+        existing.innerHTML = `<p class="notice">No appointment slots proposed yet.</p>`;
+        return;
+    }
+
+    existing.innerHTML = `
+        <h3>Current Proposed Slots</h3>
+        <ul>
+            ${slots.map(s=>`<li>${slotLabel(s)} ${s.status ? `- ${s.status}` : ""}</li>`).join("")}
+        </ul>
+    `;
+
+    slots.slice(0,5).forEach((slot,index)=>{
+        const i = index + 1;
+        document.getElementById(`slotDate${i}`).value = slot.date || "";
+        document.getElementById(`slotType${i}`).value = slot.type || "";
+        document.getElementById(`slotStart${i}`).value = slot.startTime || "";
+        document.getElementById(`slotEnd${i}`).value = slot.endTime || "";
+        toggleCustomTimes(i);
+    });
+}
+
 function validateCompletionFields(){
     const issueDate = document.getElementById("issueDate").value;
     const expiryDate = document.getElementById("expiryDate").value;
     const certificate = document.getElementById("certificate").files.length > 0;
     const completeBtn = document.getElementById("completeBtn");
-    const message = document.getElementById("message");
 
-    if(issueDate && expiryDate && certificate){
-        completeBtn.disabled = false;
-        message.className = "success";
-        message.innerHTML = "Ready to complete job and upload certificate.";
-    } else {
-        completeBtn.disabled = true;
-        message.className = "notice";
-        message.innerHTML = "You can save quote/status updates without a certificate. Certificate is only required when completing the job.";
-    }
+    completeBtn.disabled = !(issueDate && expiryDate && certificate);
 }
 
 async function loadJob(){
@@ -150,6 +235,8 @@ async function loadJob(){
     document.getElementById("bookedTime").value = job.bookedTime || "";
     document.getElementById("contractorNotes").value = job.contractorNotes || "";
 
+    renderSlotInputs();
+    populateExistingSlots(job);
     validateCompletionFields();
 }
 
@@ -192,12 +279,74 @@ async function saveStatusUpdate(){
     await loadJob();
 }
 
+async function saveAppointmentSlots(){
+    const slotMessage = document.getElementById("slotMessage");
+    const slots = [];
+
+    for(let i=1;i<=5;i++){
+        const date = document.getElementById(`slotDate${i}`).value;
+        const type = document.getElementById(`slotType${i}`).value;
+        const startTime = document.getElementById(`slotStart${i}`).value;
+        const endTime = document.getElementById(`slotEnd${i}`).value;
+
+        if(date || type || startTime || endTime){
+            if(!date || !type){
+                slotMessage.className = "error";
+                slotMessage.innerHTML = `Slot ${i} needs both a date and slot type.`;
+                return;
+            }
+
+            if(type === "Custom" && (!startTime || !endTime)){
+                slotMessage.className = "error";
+                slotMessage.innerHTML = `Slot ${i} needs a start and end time.`;
+                return;
+            }
+
+            slots.push({
+                date,
+                type,
+                startTime: type === "Custom" ? startTime : "",
+                endTime: type === "Custom" ? endTime : "",
+                status: "Proposed"
+            });
+        }
+    }
+
+    if(!slots.length){
+        slotMessage.className = "error";
+        slotMessage.innerHTML = "Please add at least one appointment slot.";
+        return;
+    }
+
+    slotMessage.className = "notice";
+    slotMessage.innerHTML = "Saving appointment slots...";
+
+    const response = await fetch(`/api/contractor-job/${token}/slots`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ appointmentSlots: slots })
+    });
+
+    const result = await response.json();
+
+    if(!response.ok){
+        slotMessage.className = "error";
+        slotMessage.innerHTML = result.error || "There was a problem saving appointment slots.";
+        return;
+    }
+
+    slotMessage.className = "success";
+    slotMessage.innerHTML = "Appointment slots saved successfully.";
+
+    await loadJob();
+}
+
 ["issueDate","expiryDate","certificate"].forEach(id=>{
     document.getElementById(id).addEventListener("change",validateCompletionFields);
     document.getElementById(id).addEventListener("input",validateCompletionFields);
 });
 
-document.getElementById("updateForm").addEventListener("submit", async function(e){
+document.getElementById("certificateForm").addEventListener("submit", async function(e){
     e.preventDefault();
 
     if(currentJob.quoteStatus !== "Accepted"){
