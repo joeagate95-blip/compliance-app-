@@ -24,7 +24,8 @@ function title(s){
   compliance:'Compliance Centre',
   expiry:'Expiry Dashboard',
   documents:'All Uploaded Documents',
-  tenants:'Tenant Contracts',
+tenants:'Tenant Contracts',
+tenantManagement:'Tenant Management',
   contractorCentre:'Contractor Centre',
   reviews:'Property Condition Reviews',
   maintenance:'Maintenance Reports',
@@ -178,7 +179,8 @@ const views={
   compliance,
   expiry,
   documents,
-  tenants,
+tenants,
+tenantManagement,
   contractorCentre,
   reviews,
   maintenance,
@@ -1404,6 +1406,135 @@ function landlordDetails(){
       <button class="btn2" onclick="copyLandlordDetails()">Share My Information</button>
     </div>
   `;
+}
+function tenantManagement(){
+  const properties = state.data.properties || [];
+  const tenants = state.data.tenants || [];
+
+  return `
+    <div class="grid">
+
+      <div class="card span12">
+        <h2>Tenant Management</h2>
+        <p class="muted">
+          Add tenants, link them to a property, control maintenance access, and allow read-only certificate visibility.
+        </p>
+      </div>
+
+      <div class="card span12">
+        <h2>Add Tenant</h2>
+
+        <form id="tenantForm" class="grid">
+          <select name="propertyId" class="span6" required>
+            <option value="">Select property</option>
+            ${properties.map(p=>`
+              <option value="${p.id}">${p.address}</option>
+            `).join('')}
+          </select>
+
+          <input name="name" class="span6" placeholder="Tenant full name" required>
+          <input name="email" class="span6" placeholder="Tenant email" required>
+          <input name="phone" class="span6" placeholder="Tenant phone">
+
+          <label class="span6">
+            <input type="checkbox" name="maintenanceAccess" value="true" checked>
+            Allow tenant to report maintenance
+          </label>
+
+          <label class="span6">
+            <input type="checkbox" name="certificateAccess" value="true" checked>
+            Allow tenant to view compliance certificates
+          </label>
+
+          <button class="span3">Add Tenant</button>
+        </form>
+      </div>
+
+      <div class="card span12">
+        <h2>Linked Tenants</h2>
+
+        <table>
+          <tr>
+            <th>Tenant</th>
+            <th>Property</th>
+            <th>Contact</th>
+            <th>Maintenance</th>
+            <th>Certificates</th>
+            <th>Invite Link</th>
+            <th>Action</th>
+          </tr>
+
+          ${tenants.map(t=>`
+            <tr>
+              <td>${t.name || ''}</td>
+              <td>${t.propertyAddress || ''}</td>
+              <td>${t.email || ''}<br>${t.phone || ''}</td>
+              <td>${t.maintenanceAccess ? 'Enabled' : 'Disabled'}</td>
+              <td>${t.certificateAccess ? 'Enabled' : 'Disabled'}</td>
+              <td>
+                <button class="btn2" onclick="copyTenantInvite('${t.tenantToken}')">
+                  Copy Invite
+                </button>
+              </td>
+              <td>
+                <button class="btn2" onclick="deleteTenant('${t.id}')">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          `).join('') || '<tr><td colspan="7">No tenants added yet.</td></tr>'}
+        </table>
+      </div>
+
+    </div>
+  `;
+}
+
+document.addEventListener('submit', async e=>{
+  if(e.target.id !== 'tenantForm') return;
+
+  e.preventDefault();
+
+  const fd = Object.fromEntries(new FormData(e.target));
+
+  fd.maintenanceAccess = e.target.maintenanceAccess.checked;
+  fd.certificateAccess = e.target.certificateAccess.checked;
+
+  const result = await api('/api/tenants',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(fd)
+  });
+
+  await load();
+
+  modal(`
+    <h2>Tenant Added</h2>
+    <p>Tenant has been linked to the selected property.</p>
+    <p>Send this invite link to the tenant:</p>
+    <input value="${location.origin}${result.tenantInviteLink}" onclick="this.select()" style="width:100%">
+    <br><br>
+    <button onclick="navigator.clipboard.writeText('${location.origin}${result.tenantInviteLink}');alert('Invite link copied')">
+      Copy Invite Link
+    </button>
+    <button class="btn2" onclick="closeModal();state.view='tenantManagement';render()">Close</button>
+  `);
+});
+
+function copyTenantInvite(token){
+  const link = `${location.origin}/tenant-portal/${token}`;
+  navigator.clipboard.writeText(link);
+  alert('Tenant invite link copied.');
+}
+
+async function deleteTenant(id){
+  if(!confirm('Delete this tenant?')) return;
+
+  await api('/api/tenants/' + id,{
+    method:'DELETE'
+  });
+
+  await load();
 }
 function adminUsers(){
   return adminUserList(state.data.users || [], 'All Users');
