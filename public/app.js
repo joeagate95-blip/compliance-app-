@@ -1536,6 +1536,16 @@ async function deleteTenant(id){
 
   await load();
 }
+function tenantManagement(){
+  return `
+    <div class="card">
+      <h2>Tenant Management</h2>
+      <p class="muted">
+        This section will allow landlords to add tenants, link tenants to properties, control maintenance access, and allow read-only certificate access.
+      </p>
+    </div>
+  `;
+}
 function adminUsers(){
   return adminUserList(state.data.users || [], 'All Users');
 }
