@@ -9,7 +9,8 @@
   <style>
     .wrap{max-width:900px;margin:30px auto;padding:20px}
     .box{background:#fff;border:1px solid #d8e6f7;border-radius:12px;padding:20px;margin:15px 0}
-    .btn{background:#0057A8;color:white;border:0;border-radius:8px;padding:12px 16px;cursor:pointer;margin:5px 0}
+    .btn{background:#0057A8;color:white;border:0;border-radius:8px;padding:12px 16px;cursor:pointer;margin:5px 5px 5px 0}
+    .btn2{background:#eef5ff;color:#0057A8;border:1px solid #b8d8f5;border-radius:8px;padding:12px 16px;cursor:pointer;margin:5px 5px 5px 0}
     .status{display:inline-block;background:#eaf4ff;color:#0057A8;padding:6px 10px;border-radius:8px;font-weight:bold}
     .notice{background:#fff8e1;border:1px solid #f0d98c;padding:12px;border-radius:8px;margin:12px 0}
     .success{color:green;font-weight:bold}
@@ -62,25 +63,21 @@
     <h2>Propose Appointment Slots</h2>
 
     <p class="notice">
-      Offer up to 5 appointment options. Set a response deadline so the tenant must choose before the slots are released.
+      Add up to 5 appointment options. Set a deadline so the tenant must respond before the slots are released.
     </p>
 
     <div id="existingSlots"></div>
 
     <h3>Tenant Response Deadline</h3>
 
-    <label>Quick Deadline</label>
-    <select id="deadlinePreset" onchange="applyDeadlinePreset()">
-      <option value="48">48 hours from now</option>
-      <option value="24">24 hours from now</option>
-      <option value="72">72 hours from now</option>
-      <option value="custom">Custom date and time</option>
-    </select>
+    <button type="button" class="btn2" onclick="setDeadlinePreset(24)">24 hours</button>
+    <button type="button" class="btn2" onclick="setDeadlinePreset(48)">48 hours</button>
+    <button type="button" class="btn2" onclick="setDeadlinePreset(72)">72 hours</button>
 
-    <label>Response Deadline Date</label>
+    <label>Deadline Date</label>
     <input type="date" id="slotsExpiryDate">
 
-    <label>Response Deadline Time</label>
+    <label>Deadline Time</label>
     <input type="time" id="slotsExpiryTime">
 
     <div id="slotsContainer"></div>
@@ -89,40 +86,40 @@
 
     <p id="slotMsg"></p>
   </div>
+
+  <div class="box">
+    <h2>Completed Certificate Upload</h2>
+
+    <form id="certificateForm" enctype="multipart/form-data">
+      <label>Certificate Issue Date REQUIRED</label>
+      <input type="date" id="issueDate">
+
+      <label>Certificate Expiry Date REQUIRED</label>
+      <input type="date" id="expiryDate">
+
+      <label>Upload Certificate PDF / Photo REQUIRED</label>
+      <input type="file" id="certificate">
+
+      <label>Certificate Notes</label>
+      <textarea id="certificateNotes" rows="3"></textarea>
+
+      <button id="completeBtn" type="submit" class="btn" disabled>Complete Job & Upload Certificate</button>
+    </form>
+
+    <p id="certificateMsg"></p>
+  </div>
 </main>
 
 <script>
 const token = location.pathname.split('/').pop();
 let currentJob = null;
 
-function pad(n){
-  return String(n).padStart(2,'0');
-}
-
-function setDeadlineFromHours(hours){
+function setDeadlinePreset(hours){
   const d = new Date();
-  d.setHours(d.getHours() + Number(hours));
+  d.setHours(d.getHours() + hours);
 
-  const yyyy = d.getFullYear();
-  const mm = pad(d.getMonth() + 1);
-  const dd = pad(d.getDate());
-  const hh = pad(d.getHours());
-  const min = pad(d.getMinutes());
-
-  document.getElementById('slotsExpiryDate').value = `${yyyy}-${mm}-${dd}`;
-  document.getElementById('slotsExpiryTime').value = `${hh}:${min}`;
-}
-
-function applyDeadlinePreset(){
-  const preset = document.getElementById('deadlinePreset').value;
-
-  if(preset === 'custom'){
-    document.getElementById('slotsExpiryDate').value = '';
-    document.getElementById('slotsExpiryTime').value = '';
-    return;
-  }
-
-  setDeadlineFromHours(preset);
+  document.getElementById('slotsExpiryDate').value = d.toISOString().slice(0,10);
+  document.getElementById('slotsExpiryTime').value = d.toTimeString().slice(0,5);
 }
 
 function slotText(slot){
@@ -174,16 +171,11 @@ function toggleCustomTimes(i){
 }
 
 function populateSlots(job){
+  document.getElementById('slotsExpiryDate').value = job.slotsExpiryDate || '';
+  document.getElementById('slotsExpiryTime').value = job.slotsExpiryTime || '';
+
   const slots = job.appointmentSlots || [];
   const existing = document.getElementById('existingSlots');
-
-  if(job.slotsExpiryDate){
-    document.getElementById('slotsExpiryDate').value = job.slotsExpiryDate || '';
-    document.getElementById('slotsExpiryTime').value = job.slotsExpiryTime || '';
-    document.getElementById('deadlinePreset').value = 'custom';
-  } else {
-    setDeadlineFromHours(48);
-  }
 
   if(!slots.length){
     existing.innerHTML = '<p class="notice">No appointment slots proposed yet.</p>';
@@ -206,6 +198,15 @@ function populateSlots(job){
     document.getElementById(`slotEnd${i}`).value = slot.endTime || '';
     toggleCustomTimes(i);
   });
+}
+
+function validateCertificateFields(){
+  const ready =
+    document.getElementById('issueDate').value &&
+    document.getElementById('expiryDate').value &&
+    document.getElementById('certificate').files.length > 0;
+
+  document.getElementById('completeBtn').disabled = !ready;
 }
 
 async function load(){
@@ -256,6 +257,7 @@ async function load(){
 
   renderSlotInputs();
   populateSlots(j);
+  validateCertificateFields();
 }
 
 document.getElementById('f').onsubmit = async e => {
@@ -284,7 +286,6 @@ document.getElementById('f').onsubmit = async e => {
 async function saveAppointmentSlots(){
   const slots = [];
   const slotMsg = document.getElementById('slotMsg');
-
   const expiryDate = document.getElementById('slotsExpiryDate').value;
   const expiryTime = document.getElementById('slotsExpiryTime').value;
 
@@ -329,6 +330,9 @@ async function saveAppointmentSlots(){
     return;
   }
 
+  slotMsg.className = '';
+  slotMsg.textContent = 'Saving appointment slots...';
+
   const r = await fetch('/api/contractor-job/' + token + '/slots',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -352,6 +356,38 @@ async function saveAppointmentSlots(){
 
   load();
 }
+
+['issueDate','expiryDate','certificate'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',validateCertificateFields);
+  document.getElementById(id).addEventListener('input',validateCertificateFields);
+});
+
+document.getElementById('certificateForm').onsubmit = async e => {
+  e.preventDefault();
+
+  const formData = new FormData();
+  formData.append('status','Completed');
+  formData.append('quotedPrice',quotedPrice.value);
+  formData.append('bookedDate',bookedDate.value);
+  formData.append('bookedTime',bookedTime.value);
+  formData.append('contractorNotes',contractorNotes.value);
+  formData.append('issueDate',issueDate.value);
+  formData.append('expiryDate',expiryDate.value);
+  formData.append('certificateNotes',certificateNotes.value);
+  formData.append('certificate',certificate.files[0]);
+
+  const r = await fetch('/api/contractor-job/' + token + '/update',{
+    method:'POST',
+    body:formData
+  });
+
+  const out = await r.json();
+
+  certificateMsg.className = out.success ? 'success' : 'error';
+  certificateMsg.textContent = out.success ? 'Job completed successfully.' : (out.error || 'Completion failed.');
+
+  load();
+};
 
 load();
 </script>
