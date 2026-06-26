@@ -124,6 +124,7 @@ if(state.user.role === 'administrator'){
     'expiry',
     'documents',
     'tenants',
+    'tenantManagement',
     'contractorCentre',
     'reviews',
     'maintenance',
