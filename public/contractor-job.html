@@ -1,405 +1,395 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contractor Job Portal</title>
-<style>
-body{font-family:Arial,sans-serif;background:#f4f8fc;margin:0;padding:0}
-.container{max-width:900px;margin:40px auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
-h1{color:#0057A8}
-.card{background:#f9fbff;border:1px solid #d9e6f5;padding:20px;border-radius:10px;margin-bottom:20px}
-label{display:block;margin-bottom:8px;font-weight:bold}
-input,select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:6px;margin-bottom:15px;box-sizing:border-box}
-button{background:#0057A8;color:white;border:none;padding:12px 20px;border-radius:6px;cursor:pointer;margin-right:8px;margin-bottom:8px}
-button:disabled{background:#999;cursor:not-allowed}
-.status{display:inline-block;padding:8px 12px;border-radius:6px;background:#e8f2ff;color:#0057A8;font-weight:bold}
-.success{color:green;margin-top:15px;font-weight:bold}
-.error{color:red;margin-top:15px;font-weight:bold}
-.notice{background:#fff8e1;border:1px solid #f0d98c;padding:12px;border-radius:8px;margin:12px 0}
-.report-link{display:inline-block;background:#0057A8;color:#fff;text-decoration:none;padding:10px 14px;border-radius:6px;margin-top:8px}
-.slot{border:1px solid #d9e6f5;background:#fff;border-radius:10px;padding:15px;margin-bottom:15px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:700px){.grid2{grid-template-columns:1fr}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Contractor Job Portal</title>
+  <link rel="stylesheet" href="/styles.css">
+
+  <style>
+    .wrap{max-width:900px;margin:30px auto;padding:20px}
+    .box{background:#fff;border:1px solid #d8e6f7;border-radius:12px;padding:20px;margin:15px 0}
+    .btn{background:#0057A8;color:white;border:0;border-radius:8px;padding:12px 16px;cursor:pointer;margin:5px 5px 5px 0}
+    .btn2{background:#eef5ff;color:#0057A8;border:1px solid #b8d8f5;border-radius:8px;padding:12px 16px;cursor:pointer;margin:5px 5px 5px 0}
+    .status{display:inline-block;background:#eaf4ff;color:#0057A8;padding:6px 10px;border-radius:8px;font-weight:bold}
+    .notice{background:#fff8e1;border:1px solid #f0d98c;padding:12px;border-radius:8px;margin:12px 0}
+    .success{color:green;font-weight:bold}
+    .error{color:red;font-weight:bold}
+    .slot{background:#fff;border:1px solid #d8e6f7;border-radius:10px;padding:15px;margin:12px 0}
+    input,select,textarea{width:100%;padding:10px;margin:8px 0 14px;border:1px solid #ccd8e5;border-radius:8px;box-sizing:border-box}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:700px){.grid2{grid-template-columns:1fr}}
+  </style>
 </head>
+
 <body>
+<main class="wrap">
+  <h1>Contractor Job Portal</h1>
 
-<div class="container">
-<h1>Contractor Job Portal</h1>
+  <div id="job" class="box">Loading...</div>
 
-<div id="jobDetails" class="card">Loading job details...</div>
+  <div class="box">
+    <h2>Update Job</h2>
 
-<div class="card">
-<h2>Update Job Status</h2>
+    <form id="f">
+      <label>Status</label>
+      <select id="status">
+        <option>Requested</option>
+        <option>Quote Sent</option>
+        <option>Booked In</option>
+        <option>Completed</option>
+        <option>Unable To Attend</option>
+      </select>
 
-<form id="updateForm" enctype="multipart/form-data">
+      <label>Quoted Price (£)</label>
+      <input id="quotedPrice">
 
-<label>Status</label>
-<select id="status" name="status">
-<option value="Requested">Requested</option>
-<option value="Quote Sent">Quote Sent</option>
-<option value="Booked In">Booked In</option>
-<option value="Completed">Completed</option>
-<option value="Unable To Attend">Unable To Attend</option>
-</select>
+      <label>Booked Date</label>
+      <input type="date" id="bookedDate">
 
-<label>Quoted Price (£)</label>
-<input type="text" id="quotedPrice" name="quotedPrice">
+      <label>Booked Time</label>
+      <input type="time" id="bookedTime">
 
-<label>Booked Date</label>
-<input type="date" id="bookedDate" name="bookedDate">
+      <label>Notes</label>
+      <textarea id="contractorNotes" rows="5"></textarea>
 
-<label>Booked Time</label>
-<input type="time" id="bookedTime" name="bookedTime">
+      <button class="btn">Save Update</button>
+    </form>
 
-<label>Contractor Notes</label>
-<textarea id="contractorNotes" name="contractorNotes" rows="5"></textarea>
+    <p id="msg"></p>
+  </div>
 
-<button id="saveUpdateBtn" type="button" onclick="saveStatusUpdate()">Save Status / Quote Update</button>
+  <div class="box">
+    <h2>Propose Appointment Slots</h2>
 
-</form>
+    <p class="notice">
+      Add up to 5 appointment options. Set a deadline so the tenant must respond before the slots are released.
+    </p>
 
-<div id="message" class="notice">
-You can save quote/status updates without a certificate. Certificate is only required when completing the job.
-</div>
-</div>
+    <div id="existingSlots"></div>
 
-<div class="card">
-<h2>Propose Appointment Slots</h2>
-<p class="notice">Offer up to 5 appointment options for the tenant or landlord to choose from.</p>
+    <h3>Tenant Response Deadline</h3>
 
-<div id="existingSlots"></div>
+    <button type="button" class="btn2" onclick="setDeadlinePreset(24)">24 hours</button>
+    <button type="button" class="btn2" onclick="setDeadlinePreset(48)">48 hours</button>
+    <button type="button" class="btn2" onclick="setDeadlinePreset(72)">72 hours</button>
 
-<form id="slotsForm">
-<div id="slotsContainer"></div>
-<button type="button" onclick="saveAppointmentSlots()">Save Proposed Appointment Slots</button>
-</form>
+    <label>Deadline Date</label>
+    <input type="date" id="slotsExpiryDate">
 
-<div id="slotMessage"></div>
-</div>
+    <label>Deadline Time</label>
+    <input type="time" id="slotsExpiryTime">
 
-<div class="card">
-<h2>Completed Certificate Upload</h2>
+    <div id="slotsContainer"></div>
 
-<form id="certificateForm" enctype="multipart/form-data">
+    <button type="button" class="btn" onclick="saveAppointmentSlots()">Save Proposed Appointment Slots</button>
 
-<label>Certificate Issue Date REQUIRED</label>
-<input type="date" id="issueDate" name="issueDate">
+    <p id="slotMsg"></p>
+  </div>
 
-<label>Certificate Expiry Date REQUIRED</label>
-<input type="date" id="expiryDate" name="expiryDate">
+  <div class="box">
+    <h2>Completed Certificate Upload</h2>
 
-<label>Upload Certificate PDF / Photo REQUIRED</label>
-<input type="file" id="certificate" name="certificate">
+    <form id="certificateForm" enctype="multipart/form-data">
+      <label>Certificate Issue Date REQUIRED</label>
+      <input type="date" id="issueDate">
 
-<label>Certificate Notes</label>
-<textarea id="certificateNotes" name="certificateNotes" rows="3"></textarea>
+      <label>Certificate Expiry Date REQUIRED</label>
+      <input type="date" id="expiryDate">
 
-<button id="completeBtn" type="submit" disabled>Complete Job & Upload Certificate</button>
+      <label>Upload Certificate PDF / Photo REQUIRED</label>
+      <input type="file" id="certificate">
 
-</form>
-</div>
-</div>
+      <label>Certificate Notes</label>
+      <textarea id="certificateNotes" rows="3"></textarea>
+
+      <button id="completeBtn" type="submit" class="btn" disabled>Complete Job & Upload Certificate</button>
+    </form>
+
+    <p id="certificateMsg"></p>
+  </div>
+</main>
 
 <script>
-const token = window.location.pathname.split("/").pop();
+const token = location.pathname.split('/').pop();
 let currentJob = null;
 
-function slotLabel(slot){
-    if(!slot || !slot.date) return "";
-    if(slot.type === "AM") return `${slot.date} - AM slot`;
-    if(slot.type === "PM") return `${slot.date} - PM slot`;
-    return `${slot.date} - ${slot.startTime || ""} to ${slot.endTime || ""}`;
+function setDeadlinePreset(hours){
+  const d = new Date();
+  d.setHours(d.getHours() + hours);
+
+  document.getElementById('slotsExpiryDate').value = d.toISOString().slice(0,10);
+  document.getElementById('slotsExpiryTime').value = d.toTimeString().slice(0,5);
+}
+
+function slotText(slot){
+  if(!slot || !slot.date) return '';
+  if(slot.type === 'AM') return `${slot.date} - AM slot`;
+  if(slot.type === 'PM') return `${slot.date} - PM slot`;
+  return `${slot.date} - ${slot.startTime || ''} to ${slot.endTime || ''}`;
 }
 
 function renderSlotInputs(){
-    const container = document.getElementById("slotsContainer");
-    container.innerHTML = "";
+  const box = document.getElementById('slotsContainer');
+  box.innerHTML = '';
 
-    for(let i=1;i<=5;i++){
-        container.innerHTML += `
-            <div class="slot">
-                <h3>Slot ${i}</h3>
+  for(let i = 1; i <= 5; i++){
+    box.innerHTML += `
+      <div class="slot">
+        <h3>Slot ${i}</h3>
 
-                <label>Date</label>
-                <input type="date" id="slotDate${i}">
+        <label>Date</label>
+        <input type="date" id="slotDate${i}">
 
-                <label>Slot Type</label>
-                <select id="slotType${i}" onchange="toggleCustomTimes(${i})">
-                    <option value="">Select slot type</option>
-                    <option value="AM">AM slot</option>
-                    <option value="PM">PM slot</option>
-                    <option value="Custom">Custom time slot</option>
-                </select>
+        <label>Slot Type</label>
+        <select id="slotType${i}" onchange="toggleCustomTimes(${i})">
+          <option value="">Select slot type</option>
+          <option value="AM">AM slot</option>
+          <option value="PM">PM slot</option>
+          <option value="Custom">Custom time slot</option>
+        </select>
 
-                <div class="grid2" id="customTimeBox${i}" style="display:none">
-                    <div>
-                        <label>Start Time</label>
-                        <input type="time" id="slotStart${i}">
-                    </div>
-                    <div>
-                        <label>End Time</label>
-                        <input type="time" id="slotEnd${i}">
-                    </div>
-                </div>
-            </div>
-        `;
-    }
+        <div id="customTimes${i}" class="grid2" style="display:none">
+          <div>
+            <label>Start Time</label>
+            <input type="time" id="slotStart${i}">
+          </div>
+
+          <div>
+            <label>End Time</label>
+            <input type="time" id="slotEnd${i}">
+          </div>
+        </div>
+      </div>
+    `;
+  }
 }
 
 function toggleCustomTimes(i){
-    const type = document.getElementById(`slotType${i}`).value;
-    document.getElementById(`customTimeBox${i}`).style.display = type === "Custom" ? "grid" : "none";
+  const type = document.getElementById(`slotType${i}`).value;
+  document.getElementById(`customTimes${i}`).style.display = type === 'Custom' ? 'grid' : 'none';
 }
 
-function populateExistingSlots(job){
-    const slots = job.appointmentSlots || [];
-    const existing = document.getElementById("existingSlots");
+function populateSlots(job){
+  document.getElementById('slotsExpiryDate').value = job.slotsExpiryDate || '';
+  document.getElementById('slotsExpiryTime').value = job.slotsExpiryTime || '';
 
-    if(!slots.length){
-        existing.innerHTML = `<p class="notice">No appointment slots proposed yet.</p>`;
-        return;
-    }
+  const slots = job.appointmentSlots || [];
+  const existing = document.getElementById('existingSlots');
 
-    existing.innerHTML = `
-        <h3>Current Proposed Slots</h3>
-        <ul>
-            ${slots.map(s=>`<li>${slotLabel(s)} ${s.status ? `- ${s.status}` : ""}</li>`).join("")}
-        </ul>
-    `;
+  if(!slots.length){
+    existing.innerHTML = '<p class="notice">No appointment slots proposed yet.</p>';
+    return;
+  }
 
-    slots.slice(0,5).forEach((slot,index)=>{
-        const i = index + 1;
-        document.getElementById(`slotDate${i}`).value = slot.date || "";
-        document.getElementById(`slotType${i}`).value = slot.type || "";
-        document.getElementById(`slotStart${i}`).value = slot.startTime || "";
-        document.getElementById(`slotEnd${i}`).value = slot.endTime || "";
-        toggleCustomTimes(i);
-    });
+  existing.innerHTML = `
+    <h3>Current Proposed Slots</h3>
+    <ul>
+      ${slots.map(s => `<li>${slotText(s)} - ${s.status || 'Proposed'}</li>`).join('')}
+    </ul>
+    <p><b>Slots expire:</b> ${job.slotsExpiryDate || 'Not set'} ${job.slotsExpiryTime || ''}</p>
+  `;
+
+  slots.slice(0,5).forEach((slot,index)=>{
+    const i = index + 1;
+    document.getElementById(`slotDate${i}`).value = slot.date || '';
+    document.getElementById(`slotType${i}`).value = slot.type || '';
+    document.getElementById(`slotStart${i}`).value = slot.startTime || '';
+    document.getElementById(`slotEnd${i}`).value = slot.endTime || '';
+    toggleCustomTimes(i);
+  });
 }
 
-function validateCompletionFields(){
-    const issueDate = document.getElementById("issueDate").value;
-    const expiryDate = document.getElementById("expiryDate").value;
-    const certificate = document.getElementById("certificate").files.length > 0;
-    const completeBtn = document.getElementById("completeBtn");
+function validateCertificateFields(){
+  const ready =
+    document.getElementById('issueDate').value &&
+    document.getElementById('expiryDate').value &&
+    document.getElementById('certificate').files.length > 0;
 
-    completeBtn.disabled = !(issueDate && expiryDate && certificate);
+  document.getElementById('completeBtn').disabled = !ready;
 }
 
-async function loadJob(){
-    const response = await fetch(`/api/contractor-job/${token}`);
-    const job = await response.json();
-    currentJob = job;
+async function load(){
+  const r = await fetch('/api/contractor-job/' + token);
+  const j = await r.json();
+  currentJob = j;
 
-    if(job.error){
-        document.getElementById("jobDetails").innerHTML = "<p>Job not found.</p>";
-        return;
-    }
+  if(j.error){
+    document.getElementById('job').innerHTML = '<p>Job not found.</p>';
+    return;
+  }
 
-    const reportLink = job.maintenanceReportUrl
-        ? `<p><strong>Tenant Maintenance Report:</strong><br>
-        <a class="report-link" href="${job.maintenanceReportUrl}" target="_blank">View / Download Report</a></p>`
-        : "";
+  const reportLink = j.maintenanceReportUrl
+    ? `<p><b>Tenant Maintenance Report:</b><br><a href="${j.maintenanceReportUrl}" target="_blank">View / Download Report</a></p>`
+    : '';
 
-    const quoteNotice = job.quoteStatus === "Pending"
-        ? `<p class="error">Quote awaiting landlord approval.</p>`
-        : job.quoteStatus === "Accepted"
-            ? `<p class="success">Quote accepted by landlord. You can now arrange booking.</p>`
-            : job.quoteStatus === "Rejected"
-                ? `<p class="error">Quote rejected by landlord. Please revise your quote or contact the landlord.</p>`
-                : "";
+  const quoteNotice = j.quoteStatus === 'Pending'
+    ? `<p class="error">Quote awaiting landlord approval.</p>`
+    : j.quoteStatus === 'Accepted'
+      ? `<p class="success">Quote accepted by landlord. You can now arrange booking.</p>`
+      : j.quoteStatus === 'Rejected'
+        ? `<p class="error">Quote rejected by landlord. Please revise your quote or contact the landlord.</p>`
+        : '';
 
-    const contractorNotification = job.contractorNotification
-        ? `<p class="notice"><strong>Landlord Update:</strong><br>${job.contractorNotification}</p>`
-        : "";
+  const contractorNotification = j.contractorNotification
+    ? `<p class="notice"><b>Landlord Update:</b><br>${j.contractorNotification}</p>`
+    : '';
 
-    document.getElementById("jobDetails").innerHTML = `
-        <h2>${job.complianceType || "Contractor Job"}</h2>
-        <p><strong>Property:</strong> ${job.propertyAddress || ""}</p>
-        <p><strong>Landlord:</strong> ${job.landlordName || ""}</p>
-        <p><strong>Email:</strong> ${job.landlordEmail || ""}</p>
-        <p><strong>Phone:</strong> ${job.landlordPhone || ""}</p>
-        <p><strong>Company:</strong> ${job.landlordCompany || ""}</p>
-        ${reportLink}
-        <p><strong>Message:</strong><br>${job.message || ""}</p>
-        <p><span class="status">${job.status || "Requested"}</span></p>
-        ${quoteNotice}
-        ${contractorNotification}
-    `;
+  document.getElementById('job').innerHTML = `
+    <h2>${j.complianceType || 'Contractor Job'}</h2>
+    <p><b>Property:</b> ${j.propertyAddress || ''}</p>
+    <p><b>Landlord:</b> ${j.landlordName || ''}</p>
+    <p><b>Email:</b> ${j.landlordEmail || ''}</p>
+    <p><b>Phone:</b> ${j.landlordPhone || ''}</p>
+    <p><b>Company:</b> ${j.landlordCompany || ''}</p>
+    ${reportLink}
+    <p><b>Message:</b><br>${j.message || ''}</p>
+    <p><span class="status">${j.status || 'Requested'}</span></p>
+    ${quoteNotice}
+    ${contractorNotification}
+  `;
 
-    document.getElementById("status").value = job.status || "Requested";
-    document.getElementById("quotedPrice").value = job.quotedPrice || "";
-    document.getElementById("bookedDate").value = job.bookedDate || "";
-    document.getElementById("bookedTime").value = job.bookedTime || "";
-    document.getElementById("contractorNotes").value = job.contractorNotes || "";
+  status.value = j.status || 'Requested';
+  quotedPrice.value = j.quotedPrice || '';
+  bookedDate.value = j.bookedDate || '';
+  bookedTime.value = j.bookedTime || '';
+  contractorNotes.value = j.contractorNotes || '';
 
-    renderSlotInputs();
-    populateExistingSlots(job);
-    validateCompletionFields();
+  renderSlotInputs();
+  populateSlots(j);
+  validateCertificateFields();
 }
 
-async function saveStatusUpdate(){
-    const message = document.getElementById("message");
-    const selectedStatus = document.getElementById("status").value;
+document.getElementById('f').onsubmit = async e => {
+  e.preventDefault();
 
-    if((selectedStatus === "Booked In" || selectedStatus === "Completed") && currentJob.quoteStatus !== "Accepted"){
-        message.className = "error";
-        message.innerHTML = "The landlord must accept the quote before you can book in or complete this job.";
-        return;
-    }
+  const r = await fetch('/api/contractor-job/' + token + '/update',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      status:status.value,
+      quotedPrice:quotedPrice.value,
+      bookedDate:bookedDate.value,
+      bookedTime:bookedTime.value,
+      contractorNotes:contractorNotes.value
+    })
+  });
 
-    message.className = "notice";
-    message.innerHTML = "Saving update...";
+  const out = await r.json();
 
-    const formData = new FormData();
-    formData.append("status", selectedStatus);
-    formData.append("quotedPrice", document.getElementById("quotedPrice").value);
-    formData.append("bookedDate", document.getElementById("bookedDate").value);
-    formData.append("bookedTime", document.getElementById("bookedTime").value);
-    formData.append("contractorNotes", document.getElementById("contractorNotes").value);
+  msg.className = out.success ? 'success' : 'error';
+  msg.textContent = out.success ? 'Job updated successfully.' : (out.error || 'Update failed.');
 
-    const response = await fetch(`/api/contractor-job/${token}/update`,{
-        method:"POST",
-        body:formData
-    });
-
-    const result = await response.json();
-
-    if(!response.ok){
-        message.className = "error";
-        message.innerHTML = result.error || "There was a problem saving the update.";
-        return;
-    }
-
-    message.className = "success";
-    message.innerHTML = "Job update saved successfully.";
-
-    await loadJob();
-}
+  load();
+};
 
 async function saveAppointmentSlots(){
-    const slotMessage = document.getElementById("slotMessage");
-    const slots = [];
+  const slots = [];
+  const slotMsg = document.getElementById('slotMsg');
+  const expiryDate = document.getElementById('slotsExpiryDate').value;
+  const expiryTime = document.getElementById('slotsExpiryTime').value;
 
-    for(let i=1;i<=5;i++){
-        const date = document.getElementById(`slotDate${i}`).value;
-        const type = document.getElementById(`slotType${i}`).value;
-        const startTime = document.getElementById(`slotStart${i}`).value;
-        const endTime = document.getElementById(`slotEnd${i}`).value;
+  if(!expiryDate || !expiryTime){
+    slotMsg.className = 'error';
+    slotMsg.textContent = 'Tenant response deadline date and time are required.';
+    return;
+  }
 
-        if(date || type || startTime || endTime){
-            if(!date || !type){
-                slotMessage.className = "error";
-                slotMessage.innerHTML = `Slot ${i} needs both a date and slot type.`;
-                return;
-            }
+  for(let i = 1; i <= 5; i++){
+    const date = document.getElementById(`slotDate${i}`).value;
+    const type = document.getElementById(`slotType${i}`).value;
+    const startTime = document.getElementById(`slotStart${i}`).value;
+    const endTime = document.getElementById(`slotEnd${i}`).value;
 
-            if(type === "Custom" && (!startTime || !endTime)){
-                slotMessage.className = "error";
-                slotMessage.innerHTML = `Slot ${i} needs a start and end time.`;
-                return;
-            }
-
-            slots.push({
-                date,
-                type,
-                startTime: type === "Custom" ? startTime : "",
-                endTime: type === "Custom" ? endTime : "",
-                status: "Proposed"
-            });
-        }
-    }
-
-    if(!slots.length){
-        slotMessage.className = "error";
-        slotMessage.innerHTML = "Please add at least one appointment slot.";
+    if(date || type || startTime || endTime){
+      if(!date || !type){
+        slotMsg.className = 'error';
+        slotMsg.textContent = `Slot ${i} needs both a date and slot type.`;
         return;
-    }
+      }
 
-    slotMessage.className = "notice";
-    slotMessage.innerHTML = "Saving appointment slots...";
-
-    const response = await fetch(`/api/contractor-job/${token}/slots`,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ appointmentSlots: slots })
-    });
-
-    const result = await response.json();
-
-    if(!response.ok){
-        slotMessage.className = "error";
-        slotMessage.innerHTML = result.error || "There was a problem saving appointment slots.";
+      if(type === 'Custom' && (!startTime || !endTime)){
+        slotMsg.className = 'error';
+        slotMsg.textContent = `Slot ${i} needs start and end time.`;
         return;
+      }
+
+      slots.push({
+        date,
+        type,
+        startTime:type === 'Custom' ? startTime : '',
+        endTime:type === 'Custom' ? endTime : '',
+        status:'Proposed'
+      });
     }
+  }
 
-    slotMessage.className = "success";
-    slotMessage.innerHTML = "Appointment slots saved successfully.";
+  if(!slots.length){
+    slotMsg.className = 'error';
+    slotMsg.textContent = 'Please add at least one appointment slot.';
+    return;
+  }
 
-    await loadJob();
+  slotMsg.className = '';
+  slotMsg.textContent = 'Saving appointment slots...';
+
+  const r = await fetch('/api/contractor-job/' + token + '/slots',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      appointmentSlots:slots,
+      slotsExpiryDate:expiryDate,
+      slotsExpiryTime:expiryTime
+    })
+  });
+
+  const out = await r.json();
+
+  if(!r.ok){
+    slotMsg.className = 'error';
+    slotMsg.textContent = out.error || 'Could not save appointment slots.';
+    return;
+  }
+
+  slotMsg.className = 'success';
+  slotMsg.textContent = 'Appointment slots saved successfully.';
+
+  load();
 }
 
-["issueDate","expiryDate","certificate"].forEach(id=>{
-    document.getElementById(id).addEventListener("change",validateCompletionFields);
-    document.getElementById(id).addEventListener("input",validateCompletionFields);
+['issueDate','expiryDate','certificate'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',validateCertificateFields);
+  document.getElementById(id).addEventListener('input',validateCertificateFields);
 });
 
-document.getElementById("certificateForm").addEventListener("submit", async function(e){
-    e.preventDefault();
+document.getElementById('certificateForm').onsubmit = async e => {
+  e.preventDefault();
 
-    if(currentJob.quoteStatus !== "Accepted"){
-        document.getElementById("message").className = "error";
-        document.getElementById("message").innerHTML =
-            "The landlord must accept the quote before you can complete this job.";
-        return;
-    }
+  const formData = new FormData();
+  formData.append('status','Completed');
+  formData.append('quotedPrice',quotedPrice.value);
+  formData.append('bookedDate',bookedDate.value);
+  formData.append('bookedTime',bookedTime.value);
+  formData.append('contractorNotes',contractorNotes.value);
+  formData.append('issueDate',issueDate.value);
+  formData.append('expiryDate',expiryDate.value);
+  formData.append('certificateNotes',certificateNotes.value);
+  formData.append('certificate',certificate.files[0]);
 
-    const issueDate = document.getElementById("issueDate").value;
-    const expiryDate = document.getElementById("expiryDate").value;
-    const certificate = document.getElementById("certificate").files[0];
+  const r = await fetch('/api/contractor-job/' + token + '/update',{
+    method:'POST',
+    body:formData
+  });
 
-    if(!issueDate || !expiryDate || !certificate){
-        document.getElementById("message").className = "error";
-        document.getElementById("message").innerHTML =
-            "You must enter issue date, expiry date and upload the certificate before completing the job.";
-        return;
-    }
+  const out = await r.json();
 
-    const formData = new FormData();
-    formData.append("status", "Completed");
-    formData.append("quotedPrice", document.getElementById("quotedPrice").value);
-    formData.append("bookedDate", document.getElementById("bookedDate").value);
-    formData.append("bookedTime", document.getElementById("bookedTime").value);
-    formData.append("contractorNotes", document.getElementById("contractorNotes").value);
-    formData.append("issueDate", issueDate);
-    formData.append("expiryDate", expiryDate);
-    formData.append("certificateNotes", document.getElementById("certificateNotes").value);
-    formData.append("certificate", certificate);
+  certificateMsg.className = out.success ? 'success' : 'error';
+  certificateMsg.textContent = out.success ? 'Job completed successfully.' : (out.error || 'Completion failed.');
 
-    const response = await fetch(`/api/contractor-job/${token}/update`,{
-        method:"POST",
-        body:formData
-    });
+  load();
+};
 
-    const result = await response.json();
-
-    if(!response.ok){
-        document.getElementById("message").className = "error";
-        document.getElementById("message").innerHTML = result.error || "There was a problem completing the job.";
-        return;
-    }
-
-    document.getElementById("message").className = "success";
-    document.getElementById("message").innerHTML =
-        "Job completed successfully. Certificate has been uploaded to the property compliance folder.";
-
-    await loadJob();
-});
-
-loadJob();
+load();
 </script>
-
 </body>
 </html>
