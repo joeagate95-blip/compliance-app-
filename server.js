@@ -1731,7 +1731,119 @@ app.get('*', (req, res) => {
 });
 
 /* START SERVER */
+// ===============================
+// TENANT MANAGEMENT ROUTES
+// ===============================
 
+app.get('/api/tenants', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  db.tenants = db.tenants || [];
+
+  const tenants = db.tenants.filter(t => {
+    if (user.role === 'admin') return true;
+    return t.landlordEmail === user.email;
+  });
+
+  res.json(tenants);
+});
+
+app.post('/api/tenants', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  db.tenants = db.tenants || [];
+
+  const property = (db.properties || []).find(p => p.id === req.body.propertyId);
+
+  if (!property || !propertyAccess(user, property)) {
+    return res.status(403).json({ error: 'No access to this property' });
+  }
+
+  const tenant = {
+    id: uuid(),
+    propertyId: req.body.propertyId,
+    propertyAddress: property.address || '',
+    landlordEmail: user.email,
+    name: req.body.name || '',
+    email: req.body.email || '',
+    phone: req.body.phone || '',
+    maintenanceAccess: req.body.maintenanceAccess === true || req.body.maintenanceAccess === 'true',
+    certificateAccess: req.body.certificateAccess === true || req.body.certificateAccess === 'true',
+    tenantToken: uuid(),
+    status: 'Invited',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  db.tenants.push(tenant);
+
+  audit(db, 'Tenant added for ' + property.address, user);
+  write(db);
+
+  res.json({
+    success: true,
+    tenant,
+    tenantInviteLink: `/tenant-portal/${tenant.tenantToken}`
+  });
+});
+
+app.put('/api/tenants/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  db.tenants = db.tenants || [];
+
+  const tenant = db.tenants.find(t => t.id === req.params.id);
+
+  if (!tenant) {
+    return res.status(404).json({ error: 'Tenant not found' });
+  }
+
+  if (user.role !== 'admin' && tenant.landlordEmail !== user.email) {
+    return res.status(403).json({ error: 'No access to this tenant' });
+  }
+
+  tenant.name = req.body.name || tenant.name;
+  tenant.email = req.body.email || tenant.email;
+  tenant.phone = req.body.phone || tenant.phone;
+  tenant.maintenanceAccess = req.body.maintenanceAccess === true || req.body.maintenanceAccess === 'true';
+  tenant.certificateAccess = req.body.certificateAccess === true || req.body.certificateAccess === 'true';
+  tenant.updatedAt = new Date().toISOString();
+
+  audit(db, 'Tenant updated for ' + tenant.propertyAddress, user);
+  write(db);
+
+  res.json({
+    success: true,
+    tenant
+  });
+});
+
+app.delete('/api/tenants/:id', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  db.tenants = db.tenants || [];
+
+  const tenant = db.tenants.find(t => t.id === req.params.id);
+
+  if (!tenant) {
+    return res.status(404).json({ error: 'Tenant not found' });
+  }
+
+  if (user.role !== 'admin' && tenant.landlordEmail !== user.email) {
+    return res.status(403).json({ error: 'No access to this tenant' });
+  }
+
+  db.tenants = db.tenants.filter(t => t.id !== req.params.id);
+
+  audit(db, 'Tenant deleted for ' + tenant.propertyAddress, user);
+  write(db);
+
+  res.json({ success: true });
+});
 app.listen(PORT, () => {
   console.log(`Landlord Compliance Hub running on http://localhost:${PORT}`);
 });
