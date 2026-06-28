@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tenant Account Setup</title>
+
+<link rel="stylesheet" href="/styles.css">
+
+<style>
+body{
+    max-width:700px;
+    margin:40px auto;
+    padding:20px;
+    font-family:Arial,sans-serif;
+}
+
+.card{
+    background:white;
+    border-radius:10px;
+    padding:25px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.field{
+    margin-bottom:15px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    box-sizing:border-box;
+}
+
+button{
+    margin-top:15px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>Complete Your Tenant Account</h1>
+
+<p>
+Your landlord has invited you to use Compliance Hub.
+</p>
+
+<form id="setupForm">
+
+<div class="field">
+<label>Email Address</label>
+<input id="email" required>
+</div>
+
+<div class="field">
+<label>Phone Number</label>
+<input id="phone" required>
+</div>
+
+<div class="field">
+<label>Create Password</label>
+<input id="password" type="password" required>
+</div>
+
+<div class="field">
+<label>Confirm Password</label>
+<input id="confirmPassword" type="password" required>
+</div>
+
+<button>
+Activate Account
+</button>
+
+</form>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+document.getElementById('setupForm').onsubmit=e=>{
+
+e.preventDefault();
+
+if(password.value!==confirmPassword.value){
+
+alert('Passwords do not match');
+
+return;
+
+}
+
+document.getElementById('result').innerHTML=
+'<h3>Account activated successfully.</h3><p>(Backend activation will be connected next.)</p>';
+
+};
+
+</script>
+
+</body>
+</html>
