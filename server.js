@@ -1930,6 +1930,34 @@ app.post('/api/tenant-setup/:token', async (req, res) => {
     message: 'Tenant account activated successfully.'
   });
 });
+app.get('/api/tenant-view/:token', (req, res) => {
+  const db = read();
+
+  const tenant = (db.tenants || []).find(t => t.tenantViewToken === req.params.token);
+
+  if (!tenant) {
+    return res.status(404).json({ error: 'Tenant view link not found' });
+  }
+
+  const property = (db.properties || []).find(p => p.id === tenant.propertyId);
+
+  if (!property) {
+    return res.status(404).json({ error: 'Property not found' });
+  }
+
+  const documents = (db.documents || []).filter(d => d.propertyId === tenant.propertyId);
+
+  res.json({
+    success: true,
+    tenant: {
+      name: tenant.name,
+      certificateAccess: tenant.certificateAccess,
+      maintenanceAccess: tenant.maintenanceAccess
+    },
+    property,
+    documents
+  });
+});
 app.listen(PORT, () => {
   console.log(`Landlord Compliance Hub running on http://localhost:${PORT}`);
 });
