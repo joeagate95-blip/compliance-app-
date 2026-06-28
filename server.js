@@ -1862,6 +1862,13 @@ app.delete('/api/tenants/:id', auth, (req, res) => {
 
   res.json({ success: true });
 });
+app.get('/tenant-setup/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tenant-setup.html'));
+});
+
+app.get('/tenant-view/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tenant-view.html'));
+});
 app.listen(PORT, () => {
   console.log(`Landlord Compliance Hub running on http://localhost:${PORT}`);
 });
