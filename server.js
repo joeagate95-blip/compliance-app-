@@ -1761,17 +1761,34 @@ app.post('/api/tenants', auth, (req, res) => {
     return res.status(403).json({ error: 'No access to this property' });
   }
 
+  const setupToken = uuid();
+  const viewToken = uuid();
+
   const tenant = {
     id: uuid(),
+
     propertyId: req.body.propertyId,
     propertyAddress: property.address || '',
+
+    landlordId: user.id || '',
     landlordEmail: user.email,
+
     name: req.body.name || '',
     email: req.body.email || '',
     phone: req.body.phone || '',
+
     maintenanceAccess: req.body.maintenanceAccess === true || req.body.maintenanceAccess === 'true',
     certificateAccess: req.body.certificateAccess === true || req.body.certificateAccess === 'true',
-    tenantToken: uuid(),
+
+    tenantToken: setupToken,
+    tenantSetupToken: setupToken,
+    tenantViewToken: viewToken,
+
+    accountStatus: 'Invite Sent',
+    verifiedEmail: false,
+    verifiedPhone: false,
+    verifiedAddress: false,
+
     status: 'Invited',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -1785,7 +1802,8 @@ app.post('/api/tenants', auth, (req, res) => {
   res.json({
     success: true,
     tenant,
-    tenantInviteLink: `/tenant-portal/${tenant.tenantToken}`
+    tenantInviteLink: `/tenant-setup/${setupToken}`,
+    tenantComplianceViewLink: `/tenant-view/${viewToken}`
   });
 });
 
