@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tenant Compliance View</title>
+<link rel="stylesheet" href="/styles.css">
+
+<style>
+body{max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;background:#f4f8fc}
+.card{background:white;border-radius:12px;padding:25px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.status{display:inline-block;padding:6px 10px;border-radius:8px;background:#eaf4ff;color:#0057A8;font-weight:bold}
+.success{color:green;font-weight:bold}
+.error{color:red;font-weight:bold}
+table{width:100%;border-collapse:collapse}
+td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+a{color:#0057A8;font-weight:bold}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1>Tenant Compliance View</h1>
+  <p id="intro">Loading...</p>
+</div>
+
+<div id="content"></div>
+
+<script>
+const token = window.location.pathname.split('/').pop();
+
+function fmt(date){
+  if(!date) return 'Not set';
+  return new Date(date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+async function load(){
+  const content = document.getElementById('content');
+  const intro = document.getElementById('intro');
+
+  try{
+    const response = await fetch('/api/tenant-view/' + token);
+    const data = await response.json();
+
+    if(!response.ok){
+      intro.innerHTML = '<span class="error">' + (data.error || 'Could not load tenant view.') + '</span>';
+      return;
+    }
+
+    const tenant = data.tenant;
+    const property = data.property;
+    const documents = data.documents || [];
+
+    intro.innerHTML = `Welcome ${tenant.name || 'Tenant'}. This page shows read-only compliance information for your property.`;
+
+    let html = `
+      <div class="card">
+        <h2>Property</h2>
+        <p><strong>${property.address || ''}</strong></p>
+        <p>${property.type || ''}</p>
+      </div>
+    `;
+
+    if(!tenant.certificateAccess){
+      html += `
+        <div class="card">
+          <h2>Compliance Certificates</h2>
+          <p class="error">Certificate access has not been enabled by the landlord.</p>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="card">
+          <h2>Compliance Certificates</h2>
+          <table>
+            <tr>
+              <th>Document</th>
+              <th>Category</th>
+              <th>Issue</th>
+              <th>Expiry</th>
+              <th>Status</th>
+              <th>Download</th>
+            </tr>
+            ${documents.map(d=>`
+              <tr>
+                <td>${d.title || d.category || 'Document'}</td>
+                <td>${d.category || ''}</td>
+                <td>${fmt(d.issueDate)}</td>
+                <td>${fmt(d.expiryDate)}</td>
+                <td><span class="status">${d.status || 'Stored'}</span></td>
+                <td>
+                  ${d.fileName ? `<a href="/uploads/${d.fileName}" target="_blank">View</a>` : 'No file'}
+                </td>
+              </tr>
+            `).join('') || '<tr><td colspan="6">No compliance documents available yet.</td></tr>'}
+          </table>
+        </div>
+      `;
+    }
+
+    if(tenant.maintenanceAccess){
+      html += `
+        <div class="card">
+          <h2>Report Maintenance</h2>
+          <p>This maintenance form will be connected in the next module.</p>
+        </div>
+      `;
+    }
+
+    content.innerHTML = html;
+
+  }catch(err){
+    intro.innerHTML = '<span class="error">Connection error. Please try again.</span>';
+  }
+}
+
+load();
+</script>
+
+</body>
+</html>
