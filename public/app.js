@@ -1509,17 +1509,48 @@ document.addEventListener('submit', async e=>{
 
   await load();
 
-  modal(`
-    <h2>Tenant Added</h2>
-    <p>Tenant has been linked to the selected property.</p>
-    <p>Send this invite link to the tenant:</p>
-    <input value="${location.origin}${result.tenantInviteLink}" onclick="this.select()" style="width:100%">
-    <br><br>
-    <button onclick="navigator.clipboard.writeText('${location.origin}${result.tenantInviteLink}');alert('Invite link copied')">
-      Copy Invite Link
-    </button>
-    <button class="btn2" onclick="closeModal();state.view='tenantManagement';render()">Close</button>
-  `);
+modal(`
+<h2>Tenant Added Successfully</h2>
+
+<p>The tenant has been linked to the selected property.</p>
+
+<h3>1. Account Setup Link</h3>
+
+<p>This is sent to the tenant so they can verify their details and create their password.</p>
+
+<input
+style="width:100%"
+readonly
+value="${location.origin}${result.tenantInviteLink}"
+onclick="this.select()">
+
+<button onclick="navigator.clipboard.writeText('${location.origin}${result.tenantInviteLink}')">
+Copy Account Setup Link
+</button>
+
+<br><br>
+
+<h3>2. Read Only Compliance Link</h3>
+
+<p>This link allows the tenant to view compliance certificates without logging in.</p>
+
+<input
+style="width:100%"
+readonly
+value="${location.origin}${result.tenantComplianceViewLink}"
+onclick="this.select()">
+
+<button onclick="navigator.clipboard.writeText('${location.origin}${result.tenantComplianceViewLink}')">
+Copy Compliance Link
+</button>
+
+<br><br>
+
+<button class="btn2"
+onclick="closeModal();state.view='tenantManagement';render();">
+Close
+</button>
+`);
 });
 
 function copyTenantInvite(token){
