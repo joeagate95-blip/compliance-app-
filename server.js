@@ -1869,6 +1869,67 @@ app.get('/tenant-setup/:token', (req, res) => {
 app.get('/tenant-view/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'tenant-view.html'));
 });
+app.post('/api/tenant-setup/:token', async (req, res) => {
+  const db = read();
+
+  db.tenants = db.tenants || [];
+  db.users = db.users || [];
+
+  const tenant = db.tenants.find(t => t.tenantSetupToken === req.params.token || t.tenantToken === req.params.token);
+
+  if (!tenant) {
+    return res.status(404).json({ error: 'Tenant invite not found' });
+  }
+
+  if ((tenant.email || '').toLowerCase() !== (req.body.email || '').toLowerCase()) {
+    return res.status(400).json({ error: 'Email does not match the landlord invitation.' });
+  }
+
+  if ((tenant.phone || '').replace(/\s/g, '') !== (req.body.phone || '').replace(/\s/g, '')) {
+    return res.status(400).json({ error: 'Phone number does not match the landlord invitation.' });
+  }
+
+  if (!req.body.password || req.body.password.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+
+  const existingUser = db.users.find(u => (u.email || '').toLowerCase() === (tenant.email || '').toLowerCase());
+
+  if (existingUser) {
+    existingUser.role = 'tenant';
+    existingUser.tenantId = tenant.id;
+    existingUser.propertyId = tenant.propertyId;
+    existingUser.passwordHash = await bcrypt.hash(req.body.password, 10);
+    existingUser.updatedAt = new Date().toISOString();
+  } else {
+    db.users.push({
+      id: uuid(),
+      name: tenant.name,
+      email: tenant.email,
+      role: 'tenant',
+      tenantId: tenant.id,
+      propertyId: tenant.propertyId,
+      passwordHash: await bcrypt.hash(req.body.password, 10),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+  }
+
+  tenant.accountStatus = 'Active';
+  tenant.status = 'Active';
+  tenant.verifiedEmail = true;
+  tenant.verifiedPhone = true;
+  tenant.verifiedAddress = true;
+  tenant.activatedAt = new Date().toISOString();
+  tenant.updatedAt = new Date().toISOString();
+
+  write(db);
+
+  res.json({
+    success: true,
+    message: 'Tenant account activated successfully.'
+  });
+});
 app.listen(PORT, () => {
   console.log(`Landlord Compliance Hub running on http://localhost:${PORT}`);
 });
