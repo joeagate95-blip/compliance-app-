@@ -3,102 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <title>Tenant Account Setup</title>
-
 <link rel="stylesheet" href="/styles.css">
 
 <style>
 body{
-    max-width:700px;
-    margin:40px auto;
-    padding:20px;
-    font-family:Arial,sans-serif;
+  max-width:700px;
+  margin:40px auto;
+  padding:20px;
+  font-family:Arial,sans-serif;
+  background:#f4f8fc;
 }
-
 .card{
-    background:white;
-    border-radius:10px;
-    padding:25px;
-    box-shadow:0 2px 8px rgba(0,0,0,.08);
+  background:white;
+  border-radius:10px;
+  padding:25px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
-
-.field{
-    margin-bottom:15px;
-}
-
+.field{margin-bottom:15px}
 input{
-    width:100%;
-    padding:10px;
-    box-sizing:border-box;
+  width:100%;
+  padding:10px;
+  box-sizing:border-box;
+  border:1px solid #ccc;
+  border-radius:6px;
 }
-
 button{
-    margin-top:15px;
+  background:#0057A8;
+  color:white;
+  border:none;
+  padding:12px 18px;
+  border-radius:6px;
+  cursor:pointer;
 }
+.success{color:green;font-weight:bold}
+.error{color:red;font-weight:bold}
+.muted{color:#667085}
 </style>
-
 </head>
 
 <body>
 
 <div class="card">
+  <h1>Complete Your Tenant Account</h1>
 
-<h1>Complete Your Tenant Account</h1>
+  <p class="muted">
+    Your landlord has invited you to use Compliance Hub. Please confirm your details and create a password.
+  </p>
 
-<p>
-Your landlord has invited you to use Compliance Hub.
-</p>
+  <form id="setupForm">
 
-<form id="setupForm">
+    <div class="field">
+      <label>Email Address</label>
+      <input id="email" type="email" required>
+    </div>
 
-<div class="field">
-<label>Email Address</label>
-<input id="email" required>
-</div>
+    <div class="field">
+      <label>Phone Number</label>
+      <input id="phone" required>
+    </div>
 
-<div class="field">
-<label>Phone Number</label>
-<input id="phone" required>
-</div>
+    <div class="field">
+      <label>Create Password</label>
+      <input id="password" type="password" required minlength="8">
+    </div>
 
-<div class="field">
-<label>Create Password</label>
-<input id="password" type="password" required>
-</div>
+    <div class="field">
+      <label>Confirm Password</label>
+      <input id="confirmPassword" type="password" required minlength="8">
+    </div>
 
-<div class="field">
-<label>Confirm Password</label>
-<input id="confirmPassword" type="password" required>
-</div>
+    <button type="submit">Activate Account</button>
 
-<button>
-Activate Account
-</button>
+  </form>
 
-</form>
-
-<div id="result"></div>
-
+  <div id="result"></div>
 </div>
 
 <script>
+const token = window.location.pathname.split('/').pop();
 
-document.getElementById('setupForm').onsubmit=e=>{
+document.getElementById('setupForm').onsubmit = async e => {
+  e.preventDefault();
 
-e.preventDefault();
+  const resultBox = document.getElementById('result');
 
-if(password.value!==confirmPassword.value){
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
 
-alert('Passwords do not match');
+  if(password !== confirmPassword){
+    resultBox.className = 'error';
+    resultBox.innerHTML = '<p>Passwords do not match.</p>';
+    return;
+  }
 
-return;
+  if(password.length < 8){
+    resultBox.className = 'error';
+    resultBox.innerHTML = '<p>Password must be at least 8 characters.</p>';
+    return;
+  }
 
-}
+  resultBox.className = 'muted';
+  resultBox.innerHTML = '<p>Activating account...</p>';
 
-document.getElementById('result').innerHTML=
-'<h3>Account activated successfully.</h3><p>(Backend activation will be connected next.)</p>';
+  try{
+    const response = await fetch('/api/tenant-setup/' + token,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        email,
+        phone,
+        password
+      })
+    });
 
+    const data = await response.json();
+
+    if(!response.ok){
+      resultBox.className = 'error';
+      resultBox.innerHTML = '<p>' + (data.error || 'Could not activate account.') + '</p>';
+      return;
+    }
+
+    resultBox.className = 'success';
+    resultBox.innerHTML = `
+      <h3>Account activated successfully.</h3>
+      <p>You can now log in using your email and password.</p>
+      <p><a href="/login">Go to Login</a></p>
+    `;
+
+    document.getElementById('setupForm').style.display = 'none';
+
+  }catch(err){
+    resultBox.className = 'error';
+    resultBox.innerHTML = '<p>Connection error. Please try again.</p>';
+  }
 };
-
 </script>
 
 </body>
