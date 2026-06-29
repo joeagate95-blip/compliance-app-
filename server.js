@@ -1765,6 +1765,58 @@ app.get('/api/tenant-view/:token', (req, res) => {
     documents
   });
 });
+app.post('/api/tenant-view/:token/maintenance', upload.array('photos', 12), (req, res) => {
+  const db = read();
+
+  const tenant = (db.tenants || []).find(t => t.tenantViewToken === req.params.token);
+
+  if (!tenant) {
+    return res.status(404).json({ error: 'Tenant view link not found' });
+  }
+
+  if (!tenant.maintenanceAccess) {
+    return res.status(403).json({ error: 'Maintenance reporting is not enabled for this tenant.' });
+  }
+
+  const property = (db.properties || []).find(p => p.id === tenant.propertyId);
+
+  if (!property) {
+    return res.status(404).json({ error: 'Property not found' });
+  }
+
+  const report = {
+    id: uuid(),
+    propertyId: property.id,
+    accountId: property.accountId || '',
+    propertyAddress: property.address,
+    tenantId: tenant.id,
+    tenantName: tenant.name || '',
+    tenantEmail: tenant.email || '',
+    tenantPhone: tenant.phone || '',
+    title: req.body.title || 'Tenant maintenance report',
+    priority: req.body.priority || 'Medium',
+    status: 'Reported',
+    notes: req.body.notes || '',
+    photos: (req.files || []).map(f => f.filename),
+    reportedBy: 'tenant-compliance-link',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  db.maintenance = db.maintenance || [];
+  db.maintenance.unshift(report);
+
+  audit(db, 'Tenant maintenance report submitted for ' + property.address, {
+    email: tenant.email || 'tenant-link'
+  });
+
+  write(db);
+
+  res.json({
+    success: true,
+    report
+  });
+});
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
