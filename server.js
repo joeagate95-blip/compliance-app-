@@ -1725,7 +1725,13 @@ app.get('/login', (req, res) => {
 app.get('/app', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+app.get('/tenant-setup/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tenant-setup.html'));
+});
 
+app.get('/tenant-view/:token', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'tenant-view.html'));
+});li
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
@@ -1862,13 +1868,7 @@ app.delete('/api/tenants/:id', auth, (req, res) => {
 
   res.json({ success: true });
 });
-app.get('/tenant-setup/:token', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'tenant-setup.html'));
-});
 
-app.get('/tenant-view/:token', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'tenant-view.html'));
-});
 app.post('/api/tenant-setup/:token', async (req, res) => {
   const db = read();
 
