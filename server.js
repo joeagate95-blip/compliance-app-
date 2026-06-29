@@ -314,10 +314,15 @@ app.get('/api/app', auth, (req, res) => {
     reminders: isPlatformAdmin(user)
       ? db.reminders
       : [],
+audit: isPlatformAdmin(user)
+  ? db.audit.slice(0, 100)
+  : [],
 
-    audit: isPlatformAdmin(user)
-      ? db.audit.slice(0, 100)
-      : []
+tenants: (db.tenants || []).filter(t =>
+  isPlatformAdmin(user) ||
+  t.landlordEmail === user.email ||
+  propertyIds.includes(t.propertyId)
+)
   });
 });
 
@@ -1829,6 +1834,11 @@ app.post('/api/tenants', auth, (req, res) => {
   };
 
   db.tenants.push(tenant);
+  property.tenantIds = property.tenantIds || [];
+
+if (!property.tenantIds.includes(tenant.id)) {
+  property.tenantIds.push(tenant.id);
+}
 
   audit(db, 'Tenant added for ' + property.address, user);
   write(db);
@@ -1890,6 +1900,11 @@ app.delete('/api/tenants/:id', auth, (req, res) => {
   }
 
   db.tenants = db.tenants.filter(t => t.id !== req.params.id);
+  const property = (db.properties || []).find(p => p.id === tenant.propertyId);
+
+if (property) {
+  property.tenantIds = (property.tenantIds || []).filter(id => id !== tenant.id);
+}
 
   audit(db, 'Tenant deleted for ' + tenant.propertyAddress, user);
   write(db);
