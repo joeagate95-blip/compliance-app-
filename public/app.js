@@ -1461,7 +1461,7 @@ function tenantManagement(){
             <th>Contact</th>
             <th>Maintenance</th>
             <th>Certificates</th>
-            <th>Invite Link</th>
+            <th>Links</th>
             <th>Action</th>
           </tr>
 
@@ -1473,10 +1473,19 @@ function tenantManagement(){
               <td>${t.maintenanceAccess ? 'Enabled' : 'Disabled'}</td>
               <td>${t.certificateAccess ? 'Enabled' : 'Disabled'}</td>
               <td>
-                <button class="btn2" onclick="copyTenantInvite('${t.tenantToken}')">
-                  Copy Invite
-                </button>
-              </td>
+              <td>
+    <button class="btn2"
+        onclick="copyTenantInvite('${t.tenantSetupToken || t.tenantToken}')"
+        style="display:block;width:100%;margin-bottom:6px;">
+        Copy Setup Link
+    </button>
+
+    <button class="btn2"
+        onclick="copyTenantCompliance('${t.tenantViewToken}')"
+        style="display:block;width:100%;">
+        Copy Compliance Link
+    </button>
+</td>
               <td>
                 <button class="btn2" onclick="deleteTenant('${t.id}')">
                   Delete
@@ -1554,11 +1563,15 @@ Close
 });
 
 function copyTenantInvite(token){
-  const link = `${location.origin}/tenant-portal/${token}`;
+  const link = `${location.origin}/tenant-setup/${token}`;
   navigator.clipboard.writeText(link);
   alert('Tenant invite link copied.');
 }
-
+function copyTenantCompliance(token){
+    const link = `${location.origin}/tenant-view/${token}`;
+    navigator.clipboard.writeText(link);
+    alert('Tenant compliance link copied.');
+}
 async function deleteTenant(id){
   if(!confirm('Delete this tenant?')) return;
 
