@@ -1080,176 +1080,201 @@ function reviews(){
 }
 
 function maintenance(){
+  const jobs = state.data.maintenance || [];
+  const contractors = state.data.contractors || [];
 
-  const contractorJobs = state.data.contractorJobs || [];
+  const counts = {
+    New: jobs.filter(j => (j.status || 'New') === 'New').length,
+    Assigned: jobs.filter(j => j.status === 'Assigned').length,
+    Booked: jobs.filter(j => j.status === 'Booked').length,
+    Completed: jobs.filter(j => j.status === 'Completed').length,
+    Closed: jobs.filter(j => j.status === 'Closed').length
+  };
 
   return `
-  <div class="grid">
+    <div class="grid">
 
-    <div class="card span6">
-      <h2>Maintenance Reports</h2>
+      <div class="card span12">
+        <h2>Maintenance Centre</h2>
+        <p class="muted">
+          Manage tenant maintenance reports, contractor assignment, workflow status and job closure.
+        </p>
+      </div>
 
-      <p>
-        <button onclick="openTenantLink()">
-          Create Tenant Maintenance Link
-        </button>
-      </p>
+      <div class="card metric-card">
+        <div class="metric">${counts.New}</div>
+        <b>New</b>
+        <span>Awaiting review</span>
+      </div>
 
-      ${(state.data.maintenance || []).map(m=>{
+      <div class="card metric-card">
+        <div class="metric">${counts.Assigned}</div>
+        <b>Assigned</b>
+        <span>Contractor allocated</span>
+      </div>
 
-        const p = state.data.properties.find(x=>x.id===m.propertyId);
+      <div class="card metric-card">
+        <div class="metric amber">${counts.Booked}</div>
+        <b>Booked</b>
+        <span>Appointment arranged</span>
+      </div>
 
-        const linkedJob = contractorJobs.find(j =>
-          j.maintenanceId === m.id
-        );
+      <div class="card metric-card">
+        <div class="metric green">${counts.Completed}</div>
+        <b>Completed</b>
+        <span>Ready to close</span>
+      </div>
 
-        return `
-          <div class="card">
+      <div class="card metric-card">
+        <div class="metric">${counts.Closed}</div>
+        <b>Closed</b>
+        <span>Archived jobs</span>
+      </div>
 
-            <h3>${m.title}</h3>
+      <div class="card span12">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <h2>Live Maintenance Jobs</h2>
+          <button onclick="openTenantLink()">Create Tenant Maintenance Link</button>
+        </div>
 
-            <p>
-              <b>Property:</b>
-              ${p?.address || m.propertyAddress || ''}
-            </p>
+        <table>
+          <tr>
+            <th>Issue</th>
+            <th>Property</th>
+            <th>Tenant</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Contractor</th>
+            <th>Action</th>
+          </tr>
 
-            <p>
-              <b>Priority:</b> ${m.priority}
-            </p>
+          ${jobs.map(j => `
+            <tr>
+              <td>
+                <b>${j.title || 'Maintenance report'}</b><br>
+                <span class="muted">${new Date(j.createdAt || Date.now()).toLocaleDateString('en-GB')}</span>
+              </td>
 
-            <p>
-              <b>Maintenance Status:</b>
-              ${m.status}
-            </p>
+              <td>${j.propertyAddress || ''}</td>
 
-            ${linkedJob ? `
-              <hr>
+              <td>
+                ${j.tenantName || 'Tenant'}<br>
+                <span class="muted">${j.tenantEmail || ''}</span>
+              </td>
 
-              <h4>Contractor Progress</h4>
+              <td>
+                <span class="status ${j.priority === 'Emergency' || j.priority === 'Urgent' ? 'red' : 'amber'}">
+                  ${j.priority || 'Medium'}
+                </span>
+              </td>
 
-              <p>
-                <b>Contractor:</b>
-                ${linkedJob.contractorName || 'Assigned'}
-              </p>
+              <td>
+                <span class="status">
+                  ${j.status || 'New'}
+                </span>
+              </td>
 
-              <p>
-                <b>Status:</b>
-                ${linkedJob.status || 'Requested'}
-              </p>
+              <td>${j.assignedContractorName || 'Unassigned'}</td>
 
-              <p>
-                <b>Quote:</b>
-                ${linkedJob.quotedPrice
-                  ? '£' + linkedJob.quotedPrice
-                  : 'Awaiting quote'}
-              </p>
-
-              ${linkedJob.status === 'Quote Sent' ? `
-  <p>
-    <b>Quote Received:</b>
-    ${linkedJob.quoteSentAt
-      ? new Date(linkedJob.quoteSentAt).toLocaleString()
-      : 'Quote received'}
-  </p>
-` : ''}
-
-${linkedJob.status === 'Booked In' ? `
-  <p>
-    <b>Booked Date:</b>
-    ${linkedJob.bookedDate || 'Not booked'}
-  </p>
-
-  <p>
-    <b>Booked Time:</b>
-    ${linkedJob.bookedTime || '-'}
-  </p>
-` : ''}
-
-${linkedJob.status === 'Completed' ? `
-  <p>
-    <b>Completed:</b>
-    ${linkedJob.completedAt
-      ? new Date(linkedJob.completedAt).toLocaleString()
-      : 'Completed'}
-  </p>
-` : ''}
-
-              <p>
-                <b>Contractor Notes:</b><br>
-                ${linkedJob.contractorNotes || 'None'}
-              </p>
-            ` : `
-              <p>
-                <b>Contractor:</b>
-                Not assigned
-              </p>
-            `}
-
-            <p>
-              ${m.notes || ''}
-            </p>
-
-            <p>
-              <a href="/api/maintenance/${m.id}/pdf" target="_blank">
-                Download PDF Report
-              </a>
-            </p>
-
-            ${!linkedJob ? `
-              <button onclick="openMaintenanceContractorModal('${m.id}')">
-                Send to Contractor
-              </button>
-            ` : ''}
-
-          </div>
-        `;
-
-      }).join('') || '<p class="muted">No maintenance reports yet.</p>'}
+              <td>
+                <button class="btn2" onclick="openMaintenanceJob('${j.id}')">
+                  Manage
+                </button>
+              </td>
+            </tr>
+          `).join('') || '<tr><td colspan="7">No maintenance reports yet.</td></tr>'}
+        </table>
+      </div>
 
     </div>
+  `;
+}
 
-    <div class="card span6">
+function openMaintenanceJob(id){
+  const job = (state.data.maintenance || []).find(j => j.id === id);
+  const contractors = state.data.contractors || [];
 
-      <h2>Report an Issue</h2>
+  if(!job){
+    alert('Maintenance job not found');
+    return;
+  }
 
-      <form id="maintForm" enctype="multipart/form-data">
+  const photos = (job.photos || []).map(p => `
+    <a href="/uploads/${p}" target="_blank">
+      <img src="/uploads/${p}" style="width:120px;height:90px;object-fit:cover;border-radius:8px;margin:4px;border:1px solid #ddd;">
+    </a>
+  `).join('');
 
-        <div class="field">
-          <select name="propertyId">
-            ${state.data.properties.map(p=>
-              `<option value="${p.id}">${p.address}</option>`
-            ).join('')}
-          </select>
-        </div>
+  modal(`
+    <h2>${job.title || 'Maintenance Job'}</h2>
 
-        <div class="field">
-          <input name="title" placeholder="Issue title">
-        </div>
+    <p><b>Property:</b> ${job.propertyAddress || ''}</p>
+    <p><b>Tenant:</b> ${job.tenantName || ''}</p>
+    <p><b>Email:</b> ${job.tenantEmail || ''}</p>
+    <p><b>Phone:</b> ${job.tenantPhone || ''}</p>
+    <p><b>Priority:</b> ${job.priority || 'Medium'}</p>
+    <p><b>Status:</b> ${job.status || 'New'}</p>
 
-        <div class="field">
-          <select name="priority">
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-            <option>Urgent</option>
-          </select>
-        </div>
+    <hr>
 
-        <div class="field">
-          <textarea name="notes" placeholder="Details"></textarea>
-        </div>
+    <h3>Tenant Description</h3>
+    <p>${job.notes || 'No description provided.'}</p>
 
-        <div class="field">
-          <input type="file" name="photos" multiple accept="image/*">
-        </div>
+    <h3>Photos</h3>
+    <div>${photos || '<p>No photos uploaded.</p>'}</div>
 
-        <button>Submit</button>
+    <hr>
 
-      </form>
+    <h3>Manage Job</h3>
 
-    </div>
+    <label>Status</label>
+    <select id="maintenanceStatus">
+      <option ${job.status === 'New' ? 'selected' : ''}>New</option>
+      <option ${job.status === 'Assigned' ? 'selected' : ''}>Assigned</option>
+      <option ${job.status === 'Booked' ? 'selected' : ''}>Booked</option>
+      <option ${job.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+      <option ${job.status === 'Completed' ? 'selected' : ''}>Completed</option>
+      <option ${job.status === 'Closed' ? 'selected' : ''}>Closed</option>
+    </select>
 
-  </div>`;
+    <label>Assign Contractor</label>
+    <select id="assignedContractorId">
+      <option value="">Unassigned</option>
+      ${contractors.map(c => `
+        <option value="${c.id}" ${job.assignedContractorId === c.id ? 'selected' : ''}>
+          ${c.company || c.name || c.email}
+        </option>
+      `).join('')}
+    </select>
+
+    <label>Landlord Notes</label>
+    <textarea id="maintenanceNotes" rows="5">${job.landlordNotes || ''}</textarea>
+
+    <br><br>
+
+    <button onclick="saveMaintenanceJob('${job.id}')">Save Job</button>
+    <button class="btn2" onclick="closeModal()">Close</button>
+  `);
+}
+
+async function saveMaintenanceJob(id){
+  const status = document.getElementById('maintenanceStatus').value;
+  const assignedContractorId = document.getElementById('assignedContractorId').value;
+  const landlordNotes = document.getElementById('maintenanceNotes').value;
+
+  await api('/api/maintenance/' + id,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      status,
+      assignedContractorId,
+      landlordNotes
+    })
+  });
+
+  closeModal();
+  await load();
+  render();
 }
 
 function openMaintenanceContractorModal(maintenanceId){
