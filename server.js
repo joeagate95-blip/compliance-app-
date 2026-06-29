@@ -1343,9 +1343,13 @@ app.put('/api/maintenance/:id', auth, (req, res) => {
         return res.status(404).json({ error: 'Contractor not found' });
       }
 
-      item.assignedContractorId = contractor.id;
-      item.assignedContractorName = contractor.company || contractor.name || '';
-      item.assignedContractorEmail = contractor.email || '';
+   item.assignedContractorId = contractor.id;
+item.assignedContractorName = contractor.company || contractor.trade || contractor.contactName || contractor.name || contractor.email || '';
+item.assignedContractorEmail = contractor.email || '';
+
+item.contractorId = contractor.id;
+item.contractorName = item.assignedContractorName;
+item.contractorEmail = contractor.email || '';
 
       if (item.status === 'New' || item.status === 'Reported' || !item.status) {
         item.status = 'Assigned';
