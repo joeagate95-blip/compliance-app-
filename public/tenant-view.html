@@ -6,14 +6,23 @@
 <link rel="stylesheet" href="/styles.css">
 
 <style>
-body{max-width:900px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;background:#f4f8fc}
+body{max-width:950px;margin:40px auto;padding:20px;font-family:Arial,sans-serif;background:#f4f8fc}
 .card{background:white;border-radius:12px;padding:25px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .status{display:inline-block;padding:6px 10px;border-radius:8px;background:#eaf4ff;color:#0057A8;font-weight:bold}
 .success{color:green;font-weight:bold}
 .error{color:red;font-weight:bold}
+.muted{color:#667085}
 table{width:100%;border-collapse:collapse}
-td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}
 a{color:#0057A8;font-weight:bold}
+label{display:block;font-weight:bold;margin-top:12px;margin-bottom:6px}
+input,select,textarea{width:100%;padding:10px;border:1px solid #ccd8e5;border-radius:8px;box-sizing:border-box}
+textarea{min-height:120px}
+button{background:#0057A8;color:white;border:0;border-radius:8px;padding:12px 18px;cursor:pointer;margin-top:15px}
+button:disabled{background:#999;cursor:not-allowed}
+.notice{background:#fff8e1;border:1px solid #f0d98c;padding:12px;border-radius:8px;margin:12px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:750px){.grid2{grid-template-columns:1fr} table{font-size:14px}}
 </style>
 </head>
 
@@ -32,6 +41,23 @@ const token = window.location.pathname.split('/').pop();
 function fmt(date){
   if(!date) return 'Not set';
   return new Date(date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function getStatus(expiryDate, fallbackStatus){
+  if(!expiryDate) return fallbackStatus || 'Stored';
+  const today = new Date();
+  const expiry = new Date(expiryDate);
+  const days = Math.ceil((expiry - today) / 86400000);
+  if(days < 0) return 'Expired';
+  if(days <= 60) return 'Due Soon';
+  return 'Valid';
+}
+
+function statusClass(status){
+  if(status === 'Expired') return 'error';
+  if(status === 'Due Soon') return 'status';
+  if(status === 'Valid') return 'success';
+  return 'status';
 }
 
 async function load(){
@@ -81,18 +107,19 @@ async function load(){
               <th>Status</th>
               <th>Download</th>
             </tr>
-            ${documents.map(d=>`
-              <tr>
-                <td>${d.title || d.category || 'Document'}</td>
-                <td>${d.category || ''}</td>
-                <td>${fmt(d.issueDate)}</td>
-                <td>${fmt(d.expiryDate)}</td>
-                <td><span class="status">${d.status || 'Stored'}</span></td>
-                <td>
-                  ${d.fileName ? `<a href="/uploads/${d.fileName}" target="_blank">View</a>` : 'No file'}
-                </td>
-              </tr>
-            `).join('') || '<tr><td colspan="6">No compliance documents available yet.</td></tr>'}
+            ${documents.map(d=>{
+              const status = getStatus(d.expiryDate, d.status);
+              return `
+                <tr>
+                  <td>${d.title || d.category || 'Document'}</td>
+                  <td>${d.category || ''}</td>
+                  <td>${fmt(d.issueDate)}</td>
+                  <td>${fmt(d.expiryDate)}</td>
+                  <td><span class="${statusClass(status)}">${status}</span></td>
+                  <td>${d.fileName ? `<a href="/uploads/${d.fileName}" target="_blank">View</a>` : 'No file'}</td>
+                </tr>
+              `;
+            }).join('') || '<tr><td colspan="6">No compliance documents available yet.</td></tr>'}
           </table>
         </div>
       `;
@@ -102,15 +129,120 @@ async function load(){
       html += `
         <div class="card">
           <h2>Report Maintenance</h2>
-          <p>This maintenance form will be connected in the next module.</p>
+          <p class="muted">Use this form to report a maintenance issue to your landlord. Add photos where helpful.</p>
+
+          <form id="maintenanceForm" enctype="multipart/form-data">
+            <label>Issue title</label>
+            <input name="title" required placeholder="Example: Leak under kitchen sink">
+
+            <div class="grid2">
+              <div>
+                <label>Priority</label>
+                <select name="priority" required>
+                  <option value="Routine">Routine</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Urgent">Urgent</option>
+                  <option value="Emergency">Emergency</option>
+                </select>
+              </div>
+
+              <div>
+                <label>Issue category</label>
+                <select name="category">
+                  <option>General Maintenance</option>
+                  <option>Plumbing</option>
+                  <option>Heating</option>
+                  <option>Electrical</option>
+                  <option>Gas / Boiler</option>
+                  <option>Damp / Mould</option>
+                  <option>Doors / Windows</option>
+                  <option>Appliances</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+
+            <label>Description</label>
+            <textarea name="notes" required placeholder="Describe the problem, when it started, and whether it is getting worse."></textarea>
+
+            <label>Upload photos</label>
+            <input type="file" name="photos" multiple accept="image/*">
+            <p class="muted">You can upload up to 12 photos.</p>
+
+            <button id="maintenanceSubmit" type="submit">Submit Maintenance Report</button>
+          </form>
+
+          <div id="maintenanceMsg"></div>
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="card">
+          <h2>Report Maintenance</h2>
+          <p class="notice">Maintenance reporting has not been enabled by the landlord for this tenant link.</p>
         </div>
       `;
     }
 
     content.innerHTML = html;
 
+    const form = document.getElementById('maintenanceForm');
+    if(form){
+      form.onsubmit = submitMaintenance;
+    }
+
   }catch(err){
     intro.innerHTML = '<span class="error">Connection error. Please try again.</span>';
+  }
+}
+
+async function submitMaintenance(e){
+  e.preventDefault();
+
+  const msg = document.getElementById('maintenanceMsg');
+  const btn = document.getElementById('maintenanceSubmit');
+  const files = e.target.photos.files || [];
+
+  if(files.length > 12){
+    msg.className = 'error';
+    msg.innerHTML = '<p>Please upload no more than 12 photos.</p>';
+    return;
+  }
+
+  const formData = new FormData(e.target);
+
+  btn.disabled = true;
+  msg.className = 'muted';
+  msg.innerHTML = '<p>Submitting maintenance report...</p>';
+
+  try{
+    const response = await fetch('/api/tenant-view/' + token + '/maintenance',{
+      method:'POST',
+      body:formData
+    });
+
+    const data = await response.json();
+
+    if(!response.ok){
+      btn.disabled = false;
+      msg.className = 'error';
+      msg.innerHTML = '<p>' + (data.error || 'Could not submit maintenance report.') + '</p>';
+      return;
+    }
+
+    msg.className = 'success';
+    msg.innerHTML = `
+      <h3>Maintenance report submitted successfully.</h3>
+      <p>Your landlord can now view this report in their Maintenance Reports section.</p>
+      <p><strong>Reference:</strong> ${data.report.id}</p>
+    `;
+
+    e.target.reset();
+
+  }catch(err){
+    btn.disabled = false;
+    msg.className = 'error';
+    msg.innerHTML = '<p>Connection error. Please try again.</p>';
   }
 }
 
