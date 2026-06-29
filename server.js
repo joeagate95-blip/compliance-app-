@@ -1204,7 +1204,66 @@ app.post('/api/links/tenant-maintenance', auth, (req, res) => {
     token
   });
 });
+app.get('/tenant-maintenance/:token', (req, res) => {
+  const db = read();
 
+  const link = (db.links || []).find(l =>
+    l.token === req.params.token &&
+    l.type === 'tenant_maintenance' &&
+    l.active !== false
+  );
+
+  if (!link) {
+    return res.status(404).send(publicLayout(
+      'Link expired',
+      '<p>This maintenance link is not valid.</p>'
+    ));
+  }
+
+  const property = (db.properties || []).find(p => p.id === link.propertyId);
+
+  if (!property) {
+    return res.status(404).send(publicLayout(
+      'Property not found',
+      '<p>The linked property could not be found.</p>'
+    ));
+  }
+
+  res.send(publicLayout('Tenant Maintenance Report', `
+    <p><b>Property:</b> ${property.address}</p>
+
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="propertyId" value="${property.id}">
+
+      <div class="field">
+        <label>Problem title</label>
+        <input name="title" required placeholder="e.g. Leak under kitchen sink">
+      </div>
+
+      <div class="field">
+        <label>Priority</label>
+        <select name="priority">
+          <option>Low</option>
+          <option>Medium</option>
+          <option>High</option>
+          <option>Urgent</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Description of problem</label>
+        <textarea name="notes" required></textarea>
+      </div>
+
+      <div class="field">
+        <label>Upload images</label>
+        <input type="file" name="photos" multiple accept="image/*">
+      </div>
+
+      <button>Submit maintenance report</button>
+    </form>
+  `));
+});
 app.post('/api/maintenance', auth, upload.array('photos', 12), (req, res) => {
   const db = read();
   const user = currentUser(req);
