@@ -1731,7 +1731,7 @@ app.get('/tenant-setup/:token', (req, res) => {
 
 app.get('/tenant-view/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'tenant-view.html'));
-});li
+});
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
