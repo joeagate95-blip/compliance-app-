@@ -1233,13 +1233,16 @@ app.put('/api/maintenance/:id', auth, (req, res) => {
   const db = read();
   const user = currentUser(req);
 
-  const item = (db.maintenance || []).find(m => m.id === req.params.id);
+  db.maintenance = db.maintenance || [];
+  db.contractors = db.contractors || [];
+
+  const item = db.maintenance.find(m => m.id === req.params.id);
 
   if (!item) {
     return res.status(404).json({ error: 'Maintenance report not found' });
   }
 
-  const property = db.properties.find(p => p.id === item.propertyId);
+  const property = (db.properties || []).find(p => p.id === item.propertyId);
 
   if (!property || !propertyAccess(user, property)) {
     return res.status(403).json({ error: 'No access' });
@@ -1247,92 +1250,64 @@ app.put('/api/maintenance/:id', auth, (req, res) => {
 
   item.title = req.body.title || item.title;
   item.priority = req.body.priority || item.priority;
-  item.status = req.body.status || item.status;
-  item.notes = req.body.notes || '';
+
+  if (req.body.status) {
+    item.status = req.body.status;
+    item.workflowStage = req.body.status;
+
+    if (req.body.status === 'Completed') {
+      item.completedAt = item.completedAt || new Date().toISOString();
+    }
+
+    if (req.body.status === 'Closed') {
+      item.closedAt = item.closedAt || new Date().toISOString();
+    }
+  }
+
+  if (req.body.notes !== undefined) {
+    item.notes = req.body.notes;
+  }
+
+  if (req.body.landlordNotes !== undefined) {
+    item.landlordNotes = req.body.landlordNotes;
+  }
+
+  if (req.body.assignedContractorId !== undefined) {
+    if (!req.body.assignedContractorId) {
+      item.assignedContractorId = '';
+      item.assignedContractorName = '';
+      item.assignedContractorEmail = '';
+    } else {
+      const contractor = db.contractors.find(c => c.id === req.body.assignedContractorId);
+
+      if (!contractor) {
+        return res.status(404).json({ error: 'Contractor not found' });
+      }
+
+      item.assignedContractorId = contractor.id;
+      item.assignedContractorName = contractor.company || contractor.name || '';
+      item.assignedContractorEmail = contractor.email || '';
+
+      if (item.status === 'New' || item.status === 'Reported' || !item.status) {
+        item.status = 'Assigned';
+        item.workflowStage = 'Assigned';
+      }
+
+      item.assignedAt = new Date().toISOString();
+    }
+  }
+
   item.updatedAt = new Date().toISOString();
   item.updatedBy = user.id;
 
   audit(db, 'Updated maintenance report: ' + item.title, user);
   write(db);
 
-  res.json({ success: true, item });
+  res.json({
+    success: true,
+    item
+  });
 });
-
-app.delete('/api/maintenance/:id', auth, (req, res) => {
-  const db = read();
-  const user = currentUser(req);
-
-  const itemIndex = (db.maintenance || []).findIndex(m => m.id === req.params.id);
-
-  if (itemIndex === -1) {
-    return res.status(404).json({ error: 'Maintenance report not found' });
-  }
-
-  const item = db.maintenance[itemIndex];
-  const property = db.properties.find(p => p.id === item.propertyId);
-
-  if (!property || !propertyAccess(user, property)) {
-    return res.status(403).json({ error: 'No access' });
-  }
-
-  db.maintenance.splice(itemIndex, 1);
-
-  audit(db, 'Deleted maintenance report: ' + item.title, user);
-  write(db);
-
-  res.json({ success: true });
-});
-app.get('/tenant-maintenance/:token', (req, res) => {
-  const db = read();
-  const link = findLink(db, req.params.token, 'tenant_maintenance');
-
-  if (!link) {
-    return res.status(404).send(publicLayout('Link expired', '<p>This maintenance link is not valid.</p>'));
-  }
-
-  const property = (db.properties || []).find(p => p.id === link.propertyId);
-
-  if (!property) {
-    return res.status(404).send(publicLayout('Property not found', '<p>The linked property could not be found.</p>'));
-  }
-
-  res.send(publicLayout('Tenant Maintenance Report', `
-    <p><b>Property:</b> ${property.address}</p>
-
-    <form method="post" enctype="multipart/form-data">
-
-      <input type="hidden" name="propertyId" value="${property.id}">
-
-      <div class="field">
-        <label>Problem title</label>
-        <input name="title" required placeholder="e.g. Leak under kitchen sink">
-      </div>
-
-      <div class="field">
-        <label>Priority</label>
-        <select name="priority">
-          <option>Low</option>
-          <option>Medium</option>
-          <option>High</option>
-          <option>Urgent</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Description of problem</label>
-        <textarea name="notes" required></textarea>
-      </div>
-
-      <div class="field">
-        <label>Upload images</label>
-        <input type="file" name="photos" multiple accept="image/*">
-      </div>
-
-      <button>Submit maintenance report</button>
-    </form>
-  `));
-});
-
 app.post('/tenant-maintenance/:token', upload.array('photos', 12), (req, res) => {
   const db = read();
   const link = findLink(db, req.params.token, 'tenant_maintenance');
