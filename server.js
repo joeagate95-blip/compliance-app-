@@ -2037,24 +2037,27 @@ app.post('/api/tenant-setup/:token', async (req, res) => {
 
   const existingUser = db.users.find(u => (u.email || '').toLowerCase() === (tenant.email || '').toLowerCase());
 
-  if (existingUser) {
+if (existingUser) {
     existingUser.role = 'tenant';
     existingUser.tenantId = tenant.id;
     existingUser.propertyId = tenant.propertyId;
+    existingUser.linkedPropertyAddress = tenant.propertyAddress || '';
     existingUser.passwordHash = await bcrypt.hash(req.body.password, 10);
     existingUser.updatedAt = new Date().toISOString();
+}
   } else {
-    db.users.push({
-      id: uuid(),
-      name: tenant.name,
-      email: tenant.email,
-      role: 'tenant',
-      tenantId: tenant.id,
-      propertyId: tenant.propertyId,
-      passwordHash: await bcrypt.hash(req.body.password, 10),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
+   db.users.push({
+    id: uuid(),
+    name: tenant.name,
+    email: tenant.email,
+    role: 'tenant',
+    tenantId: tenant.id,
+    propertyId: tenant.propertyId,
+    linkedPropertyAddress: tenant.propertyAddress || '',
+    passwordHash: await bcrypt.hash(req.body.password, 10),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+});
   }
 
   tenant.accountStatus = 'Active';
