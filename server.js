@@ -2044,7 +2044,6 @@ if (existingUser) {
     existingUser.linkedPropertyAddress = tenant.propertyAddress || '';
     existingUser.passwordHash = await bcrypt.hash(req.body.password, 10);
     existingUser.updatedAt = new Date().toISOString();
-}
   } else {
    db.users.push({
     id: uuid(),
