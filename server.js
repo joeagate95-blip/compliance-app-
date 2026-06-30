@@ -334,6 +334,9 @@ tenants: (db.tenants || []).filter(t =>
 app.post('/api/properties', auth, (req, res) => {
   const db = read();
   const user = currentUser(req);
+  if (!canModifyPropertyData(user)) {
+  return res.status(403).json({ error: 'Tenants cannot add properties' });
+}
 
   const ownerId =
   user.role === 'administrator' && req.body.landlordId
@@ -430,6 +433,9 @@ app.delete('/api/properties/:id', auth, (req, res) => {
 app.post('/api/documents', auth, upload.single('file'), (req, res) => {
   const db = read();
   const user = currentUser(req);
+  if (!canModifyPropertyData(user)) {
+  return res.status(403).json({ error: 'Tenants cannot upload compliance documents' });
+}
 
   const p = db.properties.find(x => x.id === req.body.propertyId);
 
