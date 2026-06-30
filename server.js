@@ -56,6 +56,10 @@ function safeUser(u) {
     role: u.role,
     disabled: !!u.disabled,
 
+    tenantId: u.tenantId || '',
+    propertyId: u.propertyId || '',
+    linkedPropertyAddress: u.linkedPropertyAddress || '',
+
     accountId: u.accountId || u.id,
     accountType: u.accountType || 'landlord',
 
@@ -137,9 +141,13 @@ function propertyAccess(user, p) {
     return p.agentId === user.id;
   }
 
-  if (user.role === 'tenant') {
-    return (p.tenantIds || []).includes(user.id);
-  }
+if (user.role === 'tenant') {
+  return (
+    p.id === user.propertyId ||
+    (p.tenantIds || []).includes(user.tenantId) ||
+    (p.tenantIds || []).includes(user.id)
+  );
+}
 
   if (user.role === 'contractor') {
     return false;
