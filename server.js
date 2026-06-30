@@ -117,10 +117,11 @@ function isAccountAdmin(user) {
 }
 
 function canManageDocuments(user) {
-  function canModifyPropertyData(user) {
-  return user && ['landlord', 'letting_agent', 'administrator'].includes(user.role);
-}
   return isPlatformAdmin(user) || isAccountAdmin(user);
+}
+
+function canModifyPropertyData(user) {
+  return user && ['landlord', 'letting_agent', 'administrator'].includes(user.role);
 }
 
 function propertyAccess(user, p) {
