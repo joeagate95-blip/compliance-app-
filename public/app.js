@@ -495,7 +495,7 @@ function notifications(){
           <td><b>${n.title}</b><br>${n.message}</td>
           <td>${new Date(n.createdAt).toLocaleString('en-GB')}</td>
           <td>
-            ${n.link ? `<button class="btn2" onclick="${n.link}">Open</button>` : ''}
+            ${n.link ? `<button class="btn2" onclick="openNotification('${n.id}','${n.link}')">Open</button>` : ''}
             <button class="btn2" onclick="markNotificationRead('${n.id}')">Mark read</button>
           </td>
         </tr>
@@ -3107,7 +3107,21 @@ async function markNotificationRead(id){
 function closeModal(){
   $('#modal')?.remove();
 }
+async function openNotification(id, link){
+  await markNotificationRead(id);
 
+  if(link === 'maintenance'){
+    state.view = 'maintenance';
+  } else if(link === 'documents'){
+    state.view = 'documents';
+  } else if(link === 'contractorCentre'){
+    state.view = 'contractorCentre';
+  } else {
+    state.view = 'dashboard';
+  }
+
+  render();
+}
 async function runReminders(){
   await api('/api/reminders/run',{method:'POST'});
   await load();
