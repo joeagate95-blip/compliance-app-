@@ -1940,9 +1940,6 @@ app.post('/api/notifications/:id/read', auth, (req, res) => {
 
   res.json({ success: true });
 });
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'home.html'));
-});
 
 /* START SERVER */
 // ===============================
@@ -2150,7 +2147,9 @@ if (existingUser) {
     message: 'Tenant account activated successfully.'
   });
 });
-
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'home.html'));
+});
 app.listen(PORT, () => {
   console.log(`Landlord Compliance Hub running on http://localhost:${PORT}`);
 });
