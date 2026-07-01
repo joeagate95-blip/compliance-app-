@@ -93,6 +93,35 @@ function renderLogin(){
     }catch(err){alert(err.message)}
   };
 }
+function notificationBanner(){
+  const notes = (state.data?.notifications || []).filter(n => !n.read);
+
+  if(notes.length === 0) return '';
+
+  return `
+    <div class="card" style="border-left:6px solid #005eb8;">
+      <h2>Notifications</h2>
+
+      ${notes.slice(0,5).map(n=>`
+        <p>
+          <b>${n.title}</b><br>
+          ${n.message}<br>
+          <span class="muted">${new Date(n.createdAt).toLocaleString('en-GB')}</span><br>
+          <button class="btn2" onclick="markNotificationRead('${n.id}')">Mark as read</button>
+        </p>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function markNotificationRead(id){
+  await api('/api/notifications/' + id + '/read', {
+    method: 'POST'
+  });
+
+  await load();
+  render();
+}
 function layout(content){
 let nav = [];
 
@@ -157,7 +186,8 @@ if(state.user.role === 'administrator'){
 </div>
 `}
       </div>
-      ${content}
+      ${notificationBanner()}
+${content}
     </main>
   </div>`;
 
