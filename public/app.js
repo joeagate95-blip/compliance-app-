@@ -122,30 +122,78 @@ async function markNotificationRead(id){
   await load();
   render();
 }
+function notificationBell(){
+  const notes = state.data?.notifications || [];
+  const unread = notes.filter(n => !n.read).length;
+
+  return `
+    <div class="notification-wrap">
+      <button class="btn2 notification-btn" onclick="toggleNotifications()">
+        🔔 ${unread > 0 ? `<span class="badge">${unread}</span>` : ''}
+      </button>
+
+      <div id="notificationDropdown" class="notification-dropdown" style="display:none;">
+        <h3>Notifications</h3>
+
+        ${notes.slice(0,5).map(n=>`
+          <div class="notification-item ${n.read ? '' : 'unread'}">
+            <b>${n.title}</b><br>
+            <span>${n.message}</span><br>
+            <small>${new Date(n.createdAt).toLocaleString('en-GB')}</small><br>
+            ${n.link ? `<button class="btn2" onclick="openNotification('${n.id}','${n.link}')">Open</button>` : ''}
+            <button class="btn2" onclick="markNotificationRead('${n.id}')">Mark read</button>
+          </div>
+        `).join('') || '<p class="muted">No notifications yet.</p>'}
+
+        <button class="btn2" onclick="state.view='notifications';render()">View all notifications</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleNotifications(){
+  const box = document.getElementById('notificationDropdown');
+  if(!box) return;
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function markNotificationRead(id){
+  await api('/api/notifications/' + id + '/read', { method:'POST' });
+  await load();
+  render();
+}
+
+async function openNotification(id, link){
+  await markNotificationRead(id);
+  location.href = link;
+}
 function layout(content){
 let nav = [];
 
 if(state.user.role === 'administrator'){
   nav = [
-    'admin',
-    'adminUsers',
-    'adminLandlords',
-    'adminContractors',
-    'adminProperties',
-    'adminDocuments',
-    'adminJobs',
-    'adminMaintenance'
-  ];
+  'admin',
+  'adminUsers',
+  'adminLandlords',
+  'adminContractors',
+  'adminProperties',
+  'adminDocuments',
+  'adminJobs',
+  'adminMaintenance',
+  'notifications'
+];  
 } else if(state.user.role === 'contractor'){
-  nav = [
-    'contractorCentre'
-  ];
+nav = [
+  'contractorCentre',
+  'notifications'
+];
 } else if(state.user.role === 'tenant'){
-  nav = [
-    'dashboard',
-    'documents',
-    'maintenance'
-  ];
+ nav = [
+  'dashboard',
+  'documents',
+  'maintenance',
+  'notifications'
+];
 } else {
   nav = [
     'dashboard',
@@ -158,7 +206,8 @@ if(state.user.role === 'administrator'){
     'contractorCentre',
     'reviews',
     'maintenance',
-    'landlordDetails'
+    'landlordDetails',
+    'notifications'
   ];
 }
 
@@ -174,19 +223,23 @@ if(state.user.role === 'administrator'){
     </aside>
 
     <main class="main">
-      <div class="top">
-        <div>
-          <h1>${title(state.view)}</h1>
-          <p class="muted">Simple blue and white compliance management.</p>
-        </div>
-      ${state.user.role === 'tenant' ? '' : `
-<div class="actions">
-  <button onclick="openAddDoc()">Upload Document</button>
-  <button class="btn2" onclick="openAddProperty()">Add Property</button>
+    <div class="top">
+  <div>
+    <h1>${title(state.view)}</h1>
+    <p class="muted">Simple blue and white compliance management.</p>
+  </div>
+
+  <div class="actions">
+
+    ${state.user.role === 'tenant' ? '' : `
+      <button onclick="openAddDoc()">Upload Document</button>
+      <button class="btn2" onclick="openAddProperty()">Add Property</button>
+    `}
+
+    ${notificationBell()}
+
+  </div>
 </div>
-`}
-      </div>
-      ${notificationBanner()}
 ${content}
     </main>
   </div>`;
