@@ -117,7 +117,6 @@ if(state.user.role === 'administrator'){
     'documents',
     'maintenance'
   ];
-}
 } else {
   nav = [
     'dashboard',
