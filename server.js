@@ -356,7 +356,27 @@ tenants: (db.tenants || []).filter(t =>
 )
   });
 });
+app.post('/api/notifications/:id/read', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
 
+  const note = (db.notifications || []).find(n => n.id === req.params.id);
+
+  if (!note) {
+    return res.status(404).json({ error: 'Notification not found' });
+  }
+
+  if (note.userId !== user.id && !isPlatformAdmin(user)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  note.read = true;
+  note.readAt = new Date().toISOString();
+
+  write(db);
+
+  res.json({ success: true });
+});
 /* PROPERTIES */
 
 app.post('/api/properties', auth, (req, res) => {
