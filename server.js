@@ -345,8 +345,10 @@ audit: isPlatformAdmin(user)
   ? db.audit.slice(0, 100)
   : [],
 notifications: (db.notifications || []).filter(n =>
-  n.userId === user.id || isPlatformAdmin(user)
-),
+  n.userId === user.id ||
+  n.role === user.role ||
+  (isPlatformAdmin(user) && n.role === 'administrator')
+).slice(0, 50),
 tenants: (db.tenants || []).filter(t =>
   isPlatformAdmin(user) ||
   t.landlordEmail === user.email ||
