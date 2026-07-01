@@ -266,6 +266,7 @@ const views={
   compliance,
   expiry,
   documents,
+  notifications,
 tenants,
 tenantManagement,
   contractorCentre,
@@ -473,7 +474,35 @@ function expiry(){
     </table>
   </div>`;
 }
+function notifications(){
+  const notes = state.data.notifications || [];
 
+  return `
+  <div class="card">
+    <h2>Notifications</h2>
+
+    <table>
+      <tr>
+        <th>Status</th>
+        <th>Notification</th>
+        <th>Date</th>
+        <th>Action</th>
+      </tr>
+
+      ${notes.map(n=>`
+        <tr>
+          <td>${n.read ? 'Read' : 'Unread'}</td>
+          <td><b>${n.title}</b><br>${n.message}</td>
+          <td>${new Date(n.createdAt).toLocaleString('en-GB')}</td>
+          <td>
+            ${n.link ? `<button class="btn2" onclick="${n.link}">Open</button>` : ''}
+            <button class="btn2" onclick="markNotificationRead('${n.id}')">Mark read</button>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="4">No notifications yet.</td></tr>'}
+    </table>
+  </div>`;
+}
 function documents(){
   let docs=state.data.documents;
 
@@ -1520,6 +1549,33 @@ function landlordDetails(){
 
       <button onclick="saveLandlordDetails()">Save Details</button>
       <button class="btn2" onclick="copyLandlordDetails()">Share My Information</button>
+    </div>
+  `;
+}
+function notifications(){
+  const notes = state.data.notifications || [];
+
+  return `
+    <div class="card">
+      <h2>Notifications</h2>
+
+      ${
+        notes.length
+          ? notes.map(n => `
+            <div class="card" style="margin-bottom:12px">
+              <b>${n.title}</b><br>
+              <div>${n.message}</div>
+              <small>${new Date(n.createdAt).toLocaleString()}</small>
+              <br><br>
+              ${
+                !n.read
+                  ? `<button onclick="markNotificationRead('${n.id}')">Mark Read</button>`
+                  : `<span class="badge success">Read</span>`
+              }
+            </div>
+          `).join('')
+          : '<p>No notifications.</p>'
+      }
     </div>
   `;
 }
@@ -3040,7 +3096,14 @@ async function createTenantMaintenanceLink(){
 function modal(html){
   document.body.insertAdjacentHTML('beforeend',`<div class="modal" id="modal"><div>${html}</div></div>`);
 }
+async function markNotificationRead(id){
+  await api('/api/notifications/' + id + '/read', {
+    method: 'POST'
+  });
 
+  await load();
+  render();
+}
 function closeModal(){
   $('#modal')?.remove();
 }
