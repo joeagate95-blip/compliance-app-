@@ -113,9 +113,11 @@ if(state.user.role === 'administrator'){
   ];
 } else if(state.user.role === 'tenant'){
   nav = [
+    'dashboard',
     'documents',
     'maintenance'
   ];
+}
 } else {
   nav = [
     'dashboard',
@@ -149,10 +151,12 @@ if(state.user.role === 'administrator'){
           <h1>${title(state.view)}</h1>
           <p class="muted">Simple blue and white compliance management.</p>
         </div>
-        <div class="actions">
-          <button onclick="openAddDoc()">Upload Document</button>
-          <button class="btn2" onclick="openAddProperty()">Add Property</button>
-        </div>
+      ${state.user.role === 'tenant' ? '' : `
+<div class="actions">
+  <button onclick="openAddDoc()">Upload Document</button>
+  <button class="btn2" onclick="openAddProperty()">Add Property</button>
+</div>
+`}
       </div>
       ${content}
     </main>
@@ -229,7 +233,7 @@ function dashboard(){
     </button>
 
     <div class="card span8">
-      <h2>Portfolio</h2>
+      <h2>${state.user.role === 'tenant' ? 'My Property' : 'Portfolio'}</h2>
       ${propertyTable(props)}
     </div>
 
@@ -251,13 +255,15 @@ function dashboard(){
   </div>`;
 }
 function propertyTable(props){
+  const tenant = state.user.role === 'tenant';
+
   return `
   <table>
     <tr>
       <th>Property</th>
-      <th>Status</th>
+      ${tenant ? '' : '<th>Status</th>'}
       <th>Last Property Condition Review</th>
-      <th>Action</th>
+      ${tenant ? '' : '<th>Action</th>'}
     </tr>
 
     ${props.map(p=>`
@@ -267,15 +273,17 @@ function propertyTable(props){
           <span class="muted">${p.type || ''}</span>
         </td>
 
-        <td><span class="pill">${p.status || 'Needs Review'}</span></td>
+        ${tenant ? '' : `<td><span class="pill">${p.status || 'Needs Review'}</span></td>`}
 
         <td>${fmt(p.lastConditionReview)}</td>
 
-        <td>
-          <button class="btn2" onclick="openCompliance('${p.id}')">Open Compliance Page</button>
-          <button class="btn2" onclick="openEditProperty('${p.id}')">Edit</button>
-          <button class="btn2" onclick="deleteProperty('${p.id}')">Delete</button>
-        </td>
+        ${tenant ? '' : `
+          <td>
+            <button class="btn2" onclick="openCompliance('${p.id}')">Open Compliance Page</button>
+            <button class="btn2" onclick="openEditProperty('${p.id}')">Edit</button>
+            <button class="btn2" onclick="deleteProperty('${p.id}')">Delete</button>
+          </td>
+        `}
       </tr>
     `).join('') || '<tr><td colspan="4">No properties found.</td></tr>'}
   </table>`;
