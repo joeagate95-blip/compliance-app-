@@ -165,7 +165,7 @@ function audit(db, action, user) {
     user: user?.email
   });
 }
-function notify(db, userId, title, message, link = '') {
+function notify(db, userId, title, message, link = '', role = '') {
   db.notifications = db.notifications || [];
 
   if (!userId) return;
@@ -173,6 +173,7 @@ function notify(db, userId, title, message, link = '') {
   db.notifications.unshift({
     id: uuid(),
     userId,
+    role,
     title,
     message,
     link,
