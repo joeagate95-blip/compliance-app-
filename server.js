@@ -165,7 +165,21 @@ function audit(db, action, user) {
     user: user?.email
   });
 }
+function notify(db, userId, title, message, link = '') {
+  db.notifications = db.notifications || [];
 
+  if (!userId) return;
+
+  db.notifications.unshift({
+    id: uuid(),
+    userId,
+    title,
+    message,
+    link,
+    read: false,
+    createdAt: new Date().toISOString()
+  });
+}
 function publicLayout(title, body) {
   return `
     <!doctype html>
@@ -249,7 +263,7 @@ app.get('/api/app', auth, (req, res) => {
   db.contractors = db.contractors || [];
   db.reminders = db.reminders || [];
   db.audit = db.audit || [];
-
+db.notifications = db.notifications || [];
   const user = currentUser(req);
 
   if (!user) {
@@ -329,7 +343,9 @@ app.get('/api/app', auth, (req, res) => {
 audit: isPlatformAdmin(user)
   ? db.audit.slice(0, 100)
   : [],
-
+notifications: (db.notifications || []).filter(n =>
+  n.userId === user.id || isPlatformAdmin(user)
+),
 tenants: (db.tenants || []).filter(t =>
   isPlatformAdmin(user) ||
   t.landlordEmail === user.email ||
@@ -1877,6 +1893,29 @@ app.post('/api/tenant-view/:token/maintenance', upload.array('photos', 12), (req
     success: true,
     report
   });
+});
+app.post('/api/notifications/:id/read', auth, (req, res) => {
+  const db = read();
+  const user = currentUser(req);
+
+  db.notifications = db.notifications || [];
+
+  const n = db.notifications.find(x => x.id === req.params.id);
+
+  if (!n) {
+    return res.status(404).json({ error: 'Notification not found' });
+  }
+
+  if (n.userId !== user.id && !isPlatformAdmin(user)) {
+    return res.status(403).json({ error: 'No access' });
+  }
+
+  n.read = true;
+  n.readAt = new Date().toISOString();
+
+  write(db);
+
+  res.json({ success: true });
 });
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'home.html'));
