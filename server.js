@@ -442,9 +442,13 @@ app.delete('/api/properties/:id', auth, (req, res) => {
 app.post('/api/documents', auth, upload.single('file'), (req, res) => {
   const db = read();
   const user = currentUser(req);
+
+  db.documents = db.documents || [];
+  db.properties = db.properties || [];
+
   if (!canModifyPropertyData(user)) {
-  return res.status(403).json({ error: 'Tenants cannot upload compliance documents' });
-}
+    return res.status(403).json({ error: 'Tenants cannot upload compliance documents' });
+  }
 
   const p = db.properties.find(x => x.id === req.body.propertyId);
 
@@ -455,18 +459,19 @@ app.post('/api/documents', auth, upload.single('file'), (req, res) => {
   const d = {
     id: uuid(),
     propertyId: p.id,
-    category: req.body.category,
-    title: req.body.title,
+    category: req.body.category || 'Stored',
+    title: req.body.title || 'Uploaded Document',
     issueDate: req.body.issueDate || '',
     expiryDate: req.body.expiryDate || '',
-    status: req.body.status || 'Stored',
+    status: req.body.expiryDate ? 'Valid' : 'Stored',
     fileName: req.file ? req.file.filename : '',
     notes: req.body.notes || '',
     uploadedBy: user.id,
     uploadedAt: new Date().toISOString()
   };
 
-  db.documents.push(d);
+  db.documents.unshift(d);
+
   audit(db, 'Uploaded document ' + d.title, user);
   write(db);
 
